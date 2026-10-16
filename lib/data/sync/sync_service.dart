@@ -7,7 +7,9 @@ import '../../core/api_exception.dart';
 import '../../core/connectivity_service.dart';
 import '../local/database.dart';
 import '../remote/absensi_api.dart';
+import '../remote/daily_test_api.dart';
 import '../repositories/absensi_repository.dart';
+import '../repositories/daily_test_repository.dart';
 
 class SyncResult {
   const SyncResult({
@@ -28,12 +30,21 @@ class SyncResult {
 
 /// Pushes queued offline operations to the server, then refreshes the cache.
 class SyncService {
-  SyncService(this._db, this._api, this._repository, this._connectivity);
+  SyncService(
+    this._db,
+    this._api,
+    this._repository,
+    this._connectivity,
+    this._dailyTestApi,
+    this._dailyTestRepository,
+  );
 
   final AppDatabase _db;
   final AbsensiApi _api;
   final AbsensiRepository _repository;
   final ConnectivityService _connectivity;
+  final DailyTestApi _dailyTestApi;
+  final DailyTestRepository _dailyTestRepository;
 
   static final _dateFormat = DateFormat('yyyy-MM-dd');
   static const _uuid = Uuid();
@@ -67,6 +78,9 @@ class SyncService {
     // the same meeting/student, which otherwise breaks lookups).
     try {
       await _db.dedupeAttendances();
+    } catch (_) {}
+    try {
+      await _db.dedupeDailyTestScores();
     } catch (_) {}
 
     var pushed = 0;
@@ -108,6 +122,11 @@ class SyncService {
     try {
       await _repository.refreshMeetings().timeout(const Duration(seconds: 30));
     } catch (_) {}
+    try {
+      await _dailyTestRepository
+          .refreshDailyTests()
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {}
 
     return SyncResult(
       online: true,
@@ -142,6 +161,18 @@ class SyncService {
         return _updateAttendance(op);
       case 'attendance/delete':
         return _deleteRemote(op, (id) => _api.deleteAttendance(id));
+      case 'daily_test_meeting/create':
+        return _createDailyTestMeeting(op);
+      case 'daily_test_meeting/update':
+        return _updateDailyTestMeeting(op);
+      case 'daily_test_meeting/delete':
+        return _deleteRemote(op, (id) => _dailyTestApi.deleteMeeting(id));
+      case 'daily_test_score/create':
+        return _createDailyTestScore(op);
+      case 'daily_test_score/update':
+        return _updateDailyTestScore(op);
+      case 'daily_test_score/delete':
+        return _deleteRemote(op, (id) => _dailyTestApi.deleteScore(id));
       default:
         return true;
     }
@@ -257,6 +288,113 @@ class SyncService {
       'note': attendance.note,
     });
     await _db.markAttendanceSynced(attendance.localId);
+    return true;
+  }
+
+  Future<bool> _createDailyTestMeeting(PendingOperation op) async {
+    final meeting = await _db.dailyTestMeetingByLocalId(op.localId);
+    if (meeting == null) {
+      return true;
+    }
+
+    final res = await _dailyTestApi.createMeeting({
+      'client_uuid': meeting.clientUuid,
+      'class_id': meeting.classId,
+      'title': meeting.title,
+      'test_date': meeting.testDate == null
+          ? null
+          : _dateFormat.format(meeting.testDate!),
+      'description': meeting.description,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID ulangan. Data belum tersimpan.',
+      );
+    }
+    await _db.markDailyTestMeetingSynced(meeting.localId, remoteId: remoteId);
+    await _db.enqueueDailyTestScoreCreatesForMeeting(meeting.localId);
+    return true;
+  }
+
+  Future<bool> _updateDailyTestMeeting(PendingOperation op) async {
+    final meeting = await _db.dailyTestMeetingByLocalId(op.localId);
+    if (meeting == null) {
+      return true;
+    }
+    if (meeting.remoteId == null) {
+      return false;
+    }
+
+    await _dailyTestApi.updateMeeting(meeting.remoteId!, {
+      'class_id': meeting.classId,
+      'title': meeting.title,
+      'test_date': meeting.testDate == null
+          ? null
+          : _dateFormat.format(meeting.testDate!),
+      'description': meeting.description,
+    });
+    await _db.markDailyTestMeetingSynced(meeting.localId);
+    return true;
+  }
+
+  Future<bool> _createDailyTestScore(PendingOperation op) async {
+    final score = await _db.dailyTestScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    final meeting = await _db.dailyTestMeetingByLocalId(score.meetingLocalId);
+    if (meeting?.remoteId == null) {
+      // Meeting must be created first; it will be retried afterwards.
+      return false;
+    }
+
+    // Heal rows created before client UUIDs were generated correctly.
+    var clientUuid = score.clientUuid;
+    if (!_uuidPattern.hasMatch(clientUuid)) {
+      clientUuid = _uuid.v4();
+      await _db.setDailyTestScoreClientUuid(score.localId, clientUuid);
+    }
+
+    final res = await _dailyTestApi.saveScore({
+      'client_uuid': clientUuid,
+      'daily_test_meeting_id': meeting!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID nilai ulangan. Data belum tersimpan.',
+      );
+    }
+    await _db.markDailyTestScoreSynced(score.localId, remoteId: remoteId);
+    return true;
+  }
+
+  Future<bool> _updateDailyTestScore(PendingOperation op) async {
+    final score = await _db.dailyTestScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    if (score.remoteId == null) {
+      return false;
+    }
+    final meeting = await _db.dailyTestMeetingByLocalId(score.meetingLocalId);
+    if (meeting?.remoteId == null) {
+      return false;
+    }
+
+    await _dailyTestApi.updateScore(score.remoteId!, {
+      'daily_test_meeting_id': meeting!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+    await _db.markDailyTestScoreSynced(score.localId);
     return true;
   }
 

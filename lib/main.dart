@@ -12,6 +12,7 @@ import 'screens/absensi_list_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/ulangan_harian_list_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,6 +85,8 @@ class _NilaiQAppState extends ConsumerState<NilaiQApp> {
           switch (settings.name) {
             case '/absensi':
               return const AbsensiListScreen();
+            case '/ulangan-harian':
+              return const UlanganHarianListScreen();
             case '/profile':
               return const ProfileScreen();
             case '/dashboard':

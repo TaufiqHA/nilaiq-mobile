@@ -6,9 +6,11 @@ import '../core/connectivity_service.dart';
 import '../data/local/database.dart';
 import '../data/remote/absensi_api.dart';
 import '../data/remote/auth_api.dart';
+import '../data/remote/daily_test_api.dart';
 import '../data/remote/dashboard_api.dart';
 import '../data/repositories/absensi_repository.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/daily_test_repository.dart';
 import '../data/repositories/dashboard_repository.dart';
 import '../data/sync/sync_service.dart';
 
@@ -30,6 +32,10 @@ final dashboardApiProvider = Provider<DashboardApi>(
 
 final absensiApiProvider = Provider<AbsensiApi>(
   (ref) => AbsensiApi(ref.watch(apiClientProvider)),
+);
+
+final dailyTestApiProvider = Provider<DailyTestApi>(
+  (ref) => DailyTestApi(ref.watch(apiClientProvider)),
 );
 
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -54,6 +60,13 @@ final absensiRepositoryProvider = Provider<AbsensiRepository>(
   ),
 );
 
+final dailyTestRepositoryProvider = Provider<DailyTestRepository>(
+  (ref) => DailyTestRepository(
+    ref.watch(databaseProvider),
+    ref.watch(dailyTestApiProvider),
+  ),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) =>
       AuthRepository(ref.watch(authApiProvider), ref.watch(databaseProvider)),
@@ -72,5 +85,7 @@ final syncServiceProvider = Provider<SyncService>(
     ref.watch(absensiApiProvider),
     ref.watch(absensiRepositoryProvider),
     ref.watch(connectivityProvider),
+    ref.watch(dailyTestApiProvider),
+    ref.watch(dailyTestRepositoryProvider),
   ),
 );
