@@ -31,6 +31,8 @@ sinyal buruk.
 | 📊 **Dashboard** | Statistik siswa, kelas, tahun ajaran, rata-rata kehadiran, ringkasan agenda penilaian, siswa & agenda terbaru. |
 | 🗓️ **Manajemen Pertemuan** | Buat, ubah, dan hapus pertemuan absensi per kelas. |
 | ✅ **Isi Absensi** | Tandai status **HADIR / IZIN / SAKIT / ALFA**, tambahkan catatan, cari siswa, dan simpan sekaligus. |
+| 📝 **Ulangan Harian** | Kelola pertemuan ulangan dan isi nilai siswa per kelas. |
+| 📚 **Tugas** | Kelola pertemuan tugas, isi nilai siswa, dan pindai foto daftar nilai dengan AI. |
 | 📈 **Rekap Absensi** | Rekapitulasi kehadiran per kelas dalam satu tampilan. |
 | 🔄 **Sinkronisasi Otomatis** | Data offline dikirim otomatis saat online; ada banner status & notifikasi hasil sinkron. |
 | 🌙 **Tema Gelap / Terang** | Mengikuti preferensi pengguna. |
@@ -47,6 +49,7 @@ sinyal buruk.
 | Konektivitas | [connectivity_plus](https://pub.dev/packages/connectivity_plus) |
 | Preferensi | [shared_preferences](https://pub.dev/packages/shared_preferences) |
 | UI & Format | [google_fonts](https://pub.dev/packages/google_fonts) · [intl](https://pub.dev/packages/intl) |
+| Kamera | [image_picker](https://pub.dev/packages/image_picker) |
 | Util | [uuid](https://pub.dev/packages/uuid) · [path_provider](https://pub.dev/packages/path_provider) |
 
 ## 🏗️ Arsitektur

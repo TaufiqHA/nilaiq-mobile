@@ -7,8 +7,10 @@ import '../../core/api_exception.dart';
 import '../../core/connectivity_service.dart';
 import '../local/database.dart';
 import '../remote/absensi_api.dart';
+import '../remote/assignment_api.dart';
 import '../remote/daily_test_api.dart';
 import '../repositories/absensi_repository.dart';
+import '../repositories/assignment_repository.dart';
 import '../repositories/daily_test_repository.dart';
 
 class SyncResult {
@@ -37,6 +39,8 @@ class SyncService {
     this._connectivity,
     this._dailyTestApi,
     this._dailyTestRepository,
+    this._assignmentApi,
+    this._assignmentRepository,
   );
 
   final AppDatabase _db;
@@ -45,6 +49,8 @@ class SyncService {
   final ConnectivityService _connectivity;
   final DailyTestApi _dailyTestApi;
   final DailyTestRepository _dailyTestRepository;
+  final AssignmentApi _assignmentApi;
+  final AssignmentRepository _assignmentRepository;
 
   static final _dateFormat = DateFormat('yyyy-MM-dd');
   static const _uuid = Uuid();
@@ -81,6 +87,9 @@ class SyncService {
     } catch (_) {}
     try {
       await _db.dedupeDailyTestScores();
+    } catch (_) {}
+    try {
+      await _db.dedupeAssignmentScores();
     } catch (_) {}
 
     var pushed = 0;
@@ -123,9 +132,14 @@ class SyncService {
       await _repository.refreshMeetings().timeout(const Duration(seconds: 30));
     } catch (_) {}
     try {
-      await _dailyTestRepository
-          .refreshDailyTests()
-          .timeout(const Duration(seconds: 30));
+      await _dailyTestRepository.refreshDailyTests().timeout(
+        const Duration(seconds: 30),
+      );
+    } catch (_) {}
+    try {
+      await _assignmentRepository.refreshAssignments().timeout(
+        const Duration(seconds: 30),
+      );
     } catch (_) {}
 
     return SyncResult(
@@ -138,9 +152,9 @@ class SyncService {
 
   Future<bool> _isOnline() async {
     try {
-      return await _connectivity
-          .isOnline()
-          .timeout(const Duration(seconds: 10));
+      return await _connectivity.isOnline().timeout(
+        const Duration(seconds: 10),
+      );
     } catch (_) {
       // If the connectivity plugin is unavailable, let the requests decide.
       return true;
@@ -173,6 +187,18 @@ class SyncService {
         return _updateDailyTestScore(op);
       case 'daily_test_score/delete':
         return _deleteRemote(op, (id) => _dailyTestApi.deleteScore(id));
+      case 'assignment_meeting/create':
+        return _createAssignmentMeeting(op);
+      case 'assignment_meeting/update':
+        return _updateAssignmentMeeting(op);
+      case 'assignment_meeting/delete':
+        return _deleteRemote(op, (id) => _assignmentApi.deleteMeeting(id));
+      case 'assignment_score/create':
+        return _createAssignmentScore(op);
+      case 'assignment_score/update':
+        return _updateAssignmentScore(op);
+      case 'assignment_score/delete':
+        return _deleteRemote(op, (id) => _assignmentApi.deleteScore(id));
       default:
         return true;
     }
@@ -395,6 +421,113 @@ class SyncService {
       'score': score.score,
     });
     await _db.markDailyTestScoreSynced(score.localId);
+    return true;
+  }
+
+  Future<bool> _createAssignmentMeeting(PendingOperation op) async {
+    final meeting = await _db.assignmentMeetingByLocalId(op.localId);
+    if (meeting == null) {
+      return true;
+    }
+
+    final res = await _assignmentApi.createMeeting({
+      'client_uuid': meeting.clientUuid,
+      'class_id': meeting.classId,
+      'title': meeting.title,
+      'assignment_date': meeting.assignmentDate == null
+          ? null
+          : _dateFormat.format(meeting.assignmentDate!),
+      'description': meeting.description,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID tugas. Data belum tersimpan.',
+      );
+    }
+    await _db.markAssignmentMeetingSynced(meeting.localId, remoteId: remoteId);
+    await _db.enqueueAssignmentScoreCreatesForMeeting(meeting.localId);
+    return true;
+  }
+
+  Future<bool> _updateAssignmentMeeting(PendingOperation op) async {
+    final meeting = await _db.assignmentMeetingByLocalId(op.localId);
+    if (meeting == null) {
+      return true;
+    }
+    if (meeting.remoteId == null) {
+      return false;
+    }
+
+    await _assignmentApi.updateMeeting(meeting.remoteId!, {
+      'class_id': meeting.classId,
+      'title': meeting.title,
+      'assignment_date': meeting.assignmentDate == null
+          ? null
+          : _dateFormat.format(meeting.assignmentDate!),
+      'description': meeting.description,
+    });
+    await _db.markAssignmentMeetingSynced(meeting.localId);
+    return true;
+  }
+
+  Future<bool> _createAssignmentScore(PendingOperation op) async {
+    final score = await _db.assignmentScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    final meeting = await _db.assignmentMeetingByLocalId(score.meetingLocalId);
+    if (meeting?.remoteId == null) {
+      // Meeting must be created first; it will be retried afterwards.
+      return false;
+    }
+
+    // Heal rows created before client UUIDs were generated correctly.
+    var clientUuid = score.clientUuid;
+    if (!_uuidPattern.hasMatch(clientUuid)) {
+      clientUuid = _uuid.v4();
+      await _db.setAssignmentScoreClientUuid(score.localId, clientUuid);
+    }
+
+    final res = await _assignmentApi.saveScore({
+      'client_uuid': clientUuid,
+      'assignment_meeting_id': meeting!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID nilai tugas. Data belum tersimpan.',
+      );
+    }
+    await _db.markAssignmentScoreSynced(score.localId, remoteId: remoteId);
+    return true;
+  }
+
+  Future<bool> _updateAssignmentScore(PendingOperation op) async {
+    final score = await _db.assignmentScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    if (score.remoteId == null) {
+      return false;
+    }
+    final meeting = await _db.assignmentMeetingByLocalId(score.meetingLocalId);
+    if (meeting?.remoteId == null) {
+      return false;
+    }
+
+    await _assignmentApi.updateScore(score.remoteId!, {
+      'assignment_meeting_id': meeting!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+    await _db.markAssignmentScoreSynced(score.localId);
     return true;
   }
 

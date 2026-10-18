@@ -6,7 +6,7 @@ import '../providers/session_provider.dart';
 import '../providers/theme_provider.dart';
 
 /// Set ke true untuk menampilkan menu yang masih berstatus "Segera".
-/// Saat ini menu Dashboard, Absensi, dan Ulangan Harian sudah tersedia.
+/// Saat ini menu Dashboard, Absensi, Ulangan Harian, dan Tugas sudah tersedia.
 const bool _showComingSoonMenus = false;
 
 class AppDrawer extends ConsumerWidget {
@@ -80,13 +80,15 @@ class AppDrawer extends ConsumerWidget {
                     label: 'Ulangan Harian',
                     route: '/ulangan-harian',
                   ),
+                  _navItem(
+                    context,
+                    ref,
+                    icon: Icons.assignment_outlined,
+                    label: 'Tugas',
+                    route: '/tugas',
+                  ),
                   if (_showComingSoonMenus) ...[
-                    _comingSoon(context, Icons.assignment_outlined, 'Tugas'),
-                    _comingSoon(
-                      context,
-                      Icons.assignment_late_outlined,
-                      'PTS',
-                    ),
+                    _comingSoon(context, Icons.assignment_late_outlined, 'PTS'),
                     _comingSoon(context, Icons.school_outlined, 'PAS'),
                     _comingSoon(
                       context,
@@ -95,11 +97,7 @@ class AppDrawer extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _groupLabel(context, 'Pengaturan'),
-                    _comingSoon(
-                      context,
-                      Icons.storage_outlined,
-                      'Master Data',
-                    ),
+                    _comingSoon(context, Icons.storage_outlined, 'Master Data'),
                   ],
                 ],
               ),

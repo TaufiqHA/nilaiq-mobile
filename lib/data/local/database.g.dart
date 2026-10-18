@@ -2866,6 +2866,1147 @@ class DailyTestScoreRecordsCompanion
   }
 }
 
+class $AssignmentMeetingRecordsTable extends AssignmentMeetingRecords
+    with TableInfo<$AssignmentMeetingRecordsTable, AssignmentMeetingRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AssignmentMeetingRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clientUuidMeta = const VerificationMeta(
+    'clientUuid',
+  );
+  @override
+  late final GeneratedColumn<String> clientUuid = GeneratedColumn<String>(
+    'client_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _classIdMeta = const VerificationMeta(
+    'classId',
+  );
+  @override
+  late final GeneratedColumn<int> classId = GeneratedColumn<int>(
+    'class_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _classNameMeta = const VerificationMeta(
+    'className',
+  );
+  @override
+  late final GeneratedColumn<String> className = GeneratedColumn<String>(
+    'class_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _assignmentDateMeta = const VerificationMeta(
+    'assignmentDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> assignmentDate =
+      GeneratedColumn<DateTime>(
+        'assignment_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    remoteId,
+    clientUuid,
+    classId,
+    className,
+    title,
+    assignmentDate,
+    description,
+    syncStatus,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'assignment_meeting_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AssignmentMeetingRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    }
+    if (data.containsKey('client_uuid')) {
+      context.handle(
+        _clientUuidMeta,
+        clientUuid.isAcceptableOrUnknown(data['client_uuid']!, _clientUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUuidMeta);
+    }
+    if (data.containsKey('class_id')) {
+      context.handle(
+        _classIdMeta,
+        classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
+      );
+    }
+    if (data.containsKey('class_name')) {
+      context.handle(
+        _classNameMeta,
+        className.isAcceptableOrUnknown(data['class_name']!, _classNameMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('assignment_date')) {
+      context.handle(
+        _assignmentDateMeta,
+        assignmentDate.isAcceptableOrUnknown(
+          data['assignment_date']!,
+          _assignmentDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  AssignmentMeetingRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AssignmentMeetingRecord(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remote_id'],
+      ),
+      clientUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_uuid'],
+      )!,
+      classId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}class_id'],
+      ),
+      className: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}class_name'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      assignmentDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}assignment_date'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AssignmentMeetingRecordsTable createAlias(String alias) {
+    return $AssignmentMeetingRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class AssignmentMeetingRecord extends DataClass
+    implements Insertable<AssignmentMeetingRecord> {
+  final int localId;
+  final int? remoteId;
+  final String clientUuid;
+  final int? classId;
+  final String? className;
+  final String title;
+  final DateTime? assignmentDate;
+  final String? description;
+  final String syncStatus;
+  final DateTime updatedAt;
+  const AssignmentMeetingRecord({
+    required this.localId,
+    this.remoteId,
+    required this.clientUuid,
+    this.classId,
+    this.className,
+    required this.title,
+    this.assignmentDate,
+    this.description,
+    required this.syncStatus,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<int>(remoteId);
+    }
+    map['client_uuid'] = Variable<String>(clientUuid);
+    if (!nullToAbsent || classId != null) {
+      map['class_id'] = Variable<int>(classId);
+    }
+    if (!nullToAbsent || className != null) {
+      map['class_name'] = Variable<String>(className);
+    }
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || assignmentDate != null) {
+      map['assignment_date'] = Variable<DateTime>(assignmentDate);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AssignmentMeetingRecordsCompanion toCompanion(bool nullToAbsent) {
+    return AssignmentMeetingRecordsCompanion(
+      localId: Value(localId),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      clientUuid: Value(clientUuid),
+      classId: classId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(classId),
+      className: className == null && nullToAbsent
+          ? const Value.absent()
+          : Value(className),
+      title: Value(title),
+      assignmentDate: assignmentDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assignmentDate),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AssignmentMeetingRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AssignmentMeetingRecord(
+      localId: serializer.fromJson<int>(json['localId']),
+      remoteId: serializer.fromJson<int?>(json['remoteId']),
+      clientUuid: serializer.fromJson<String>(json['clientUuid']),
+      classId: serializer.fromJson<int?>(json['classId']),
+      className: serializer.fromJson<String?>(json['className']),
+      title: serializer.fromJson<String>(json['title']),
+      assignmentDate: serializer.fromJson<DateTime?>(json['assignmentDate']),
+      description: serializer.fromJson<String?>(json['description']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'remoteId': serializer.toJson<int?>(remoteId),
+      'clientUuid': serializer.toJson<String>(clientUuid),
+      'classId': serializer.toJson<int?>(classId),
+      'className': serializer.toJson<String?>(className),
+      'title': serializer.toJson<String>(title),
+      'assignmentDate': serializer.toJson<DateTime?>(assignmentDate),
+      'description': serializer.toJson<String?>(description),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AssignmentMeetingRecord copyWith({
+    int? localId,
+    Value<int?> remoteId = const Value.absent(),
+    String? clientUuid,
+    Value<int?> classId = const Value.absent(),
+    Value<String?> className = const Value.absent(),
+    String? title,
+    Value<DateTime?> assignmentDate = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    String? syncStatus,
+    DateTime? updatedAt,
+  }) => AssignmentMeetingRecord(
+    localId: localId ?? this.localId,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
+    clientUuid: clientUuid ?? this.clientUuid,
+    classId: classId.present ? classId.value : this.classId,
+    className: className.present ? className.value : this.className,
+    title: title ?? this.title,
+    assignmentDate: assignmentDate.present
+        ? assignmentDate.value
+        : this.assignmentDate,
+    description: description.present ? description.value : this.description,
+    syncStatus: syncStatus ?? this.syncStatus,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AssignmentMeetingRecord copyWithCompanion(
+    AssignmentMeetingRecordsCompanion data,
+  ) {
+    return AssignmentMeetingRecord(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      clientUuid: data.clientUuid.present
+          ? data.clientUuid.value
+          : this.clientUuid,
+      classId: data.classId.present ? data.classId.value : this.classId,
+      className: data.className.present ? data.className.value : this.className,
+      title: data.title.present ? data.title.value : this.title,
+      assignmentDate: data.assignmentDate.present
+          ? data.assignmentDate.value
+          : this.assignmentDate,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssignmentMeetingRecord(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('classId: $classId, ')
+          ..write('className: $className, ')
+          ..write('title: $title, ')
+          ..write('assignmentDate: $assignmentDate, ')
+          ..write('description: $description, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    remoteId,
+    clientUuid,
+    classId,
+    className,
+    title,
+    assignmentDate,
+    description,
+    syncStatus,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AssignmentMeetingRecord &&
+          other.localId == this.localId &&
+          other.remoteId == this.remoteId &&
+          other.clientUuid == this.clientUuid &&
+          other.classId == this.classId &&
+          other.className == this.className &&
+          other.title == this.title &&
+          other.assignmentDate == this.assignmentDate &&
+          other.description == this.description &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AssignmentMeetingRecordsCompanion
+    extends UpdateCompanion<AssignmentMeetingRecord> {
+  final Value<int> localId;
+  final Value<int?> remoteId;
+  final Value<String> clientUuid;
+  final Value<int?> classId;
+  final Value<String?> className;
+  final Value<String> title;
+  final Value<DateTime?> assignmentDate;
+  final Value<String?> description;
+  final Value<String> syncStatus;
+  final Value<DateTime> updatedAt;
+  const AssignmentMeetingRecordsCompanion({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.classId = const Value.absent(),
+    this.className = const Value.absent(),
+    this.title = const Value.absent(),
+    this.assignmentDate = const Value.absent(),
+    this.description = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AssignmentMeetingRecordsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    required String clientUuid,
+    this.classId = const Value.absent(),
+    this.className = const Value.absent(),
+    required String title,
+    this.assignmentDate = const Value.absent(),
+    this.description = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : clientUuid = Value(clientUuid),
+       title = Value(title);
+  static Insertable<AssignmentMeetingRecord> custom({
+    Expression<int>? localId,
+    Expression<int>? remoteId,
+    Expression<String>? clientUuid,
+    Expression<int>? classId,
+    Expression<String>? className,
+    Expression<String>? title,
+    Expression<DateTime>? assignmentDate,
+    Expression<String>? description,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (clientUuid != null) 'client_uuid': clientUuid,
+      if (classId != null) 'class_id': classId,
+      if (className != null) 'class_name': className,
+      if (title != null) 'title': title,
+      if (assignmentDate != null) 'assignment_date': assignmentDate,
+      if (description != null) 'description': description,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AssignmentMeetingRecordsCompanion copyWith({
+    Value<int>? localId,
+    Value<int?>? remoteId,
+    Value<String>? clientUuid,
+    Value<int?>? classId,
+    Value<String?>? className,
+    Value<String>? title,
+    Value<DateTime?>? assignmentDate,
+    Value<String?>? description,
+    Value<String>? syncStatus,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AssignmentMeetingRecordsCompanion(
+      localId: localId ?? this.localId,
+      remoteId: remoteId ?? this.remoteId,
+      clientUuid: clientUuid ?? this.clientUuid,
+      classId: classId ?? this.classId,
+      className: className ?? this.className,
+      title: title ?? this.title,
+      assignmentDate: assignmentDate ?? this.assignmentDate,
+      description: description ?? this.description,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    if (clientUuid.present) {
+      map['client_uuid'] = Variable<String>(clientUuid.value);
+    }
+    if (classId.present) {
+      map['class_id'] = Variable<int>(classId.value);
+    }
+    if (className.present) {
+      map['class_name'] = Variable<String>(className.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (assignmentDate.present) {
+      map['assignment_date'] = Variable<DateTime>(assignmentDate.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssignmentMeetingRecordsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('classId: $classId, ')
+          ..write('className: $className, ')
+          ..write('title: $title, ')
+          ..write('assignmentDate: $assignmentDate, ')
+          ..write('description: $description, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AssignmentScoreRecordsTable extends AssignmentScoreRecords
+    with TableInfo<$AssignmentScoreRecordsTable, AssignmentScoreRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AssignmentScoreRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clientUuidMeta = const VerificationMeta(
+    'clientUuid',
+  );
+  @override
+  late final GeneratedColumn<String> clientUuid = GeneratedColumn<String>(
+    'client_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _meetingLocalIdMeta = const VerificationMeta(
+    'meetingLocalId',
+  );
+  @override
+  late final GeneratedColumn<int> meetingLocalId = GeneratedColumn<int>(
+    'meeting_local_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<int> studentId = GeneratedColumn<int>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<double> score = GeneratedColumn<double>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending_create'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    remoteId,
+    clientUuid,
+    meetingLocalId,
+    studentId,
+    score,
+    syncStatus,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'assignment_score_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AssignmentScoreRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    }
+    if (data.containsKey('client_uuid')) {
+      context.handle(
+        _clientUuidMeta,
+        clientUuid.isAcceptableOrUnknown(data['client_uuid']!, _clientUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUuidMeta);
+    }
+    if (data.containsKey('meeting_local_id')) {
+      context.handle(
+        _meetingLocalIdMeta,
+        meetingLocalId.isAcceptableOrUnknown(
+          data['meeting_local_id']!,
+          _meetingLocalIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_meetingLocalIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scoreMeta);
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  AssignmentScoreRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AssignmentScoreRecord(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remote_id'],
+      ),
+      clientUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_uuid'],
+      )!,
+      meetingLocalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}meeting_local_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}student_id'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}score'],
+      )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AssignmentScoreRecordsTable createAlias(String alias) {
+    return $AssignmentScoreRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class AssignmentScoreRecord extends DataClass
+    implements Insertable<AssignmentScoreRecord> {
+  final int localId;
+  final int? remoteId;
+  final String clientUuid;
+  final int meetingLocalId;
+  final int studentId;
+  final double score;
+  final String syncStatus;
+  final DateTime updatedAt;
+  const AssignmentScoreRecord({
+    required this.localId,
+    this.remoteId,
+    required this.clientUuid,
+    required this.meetingLocalId,
+    required this.studentId,
+    required this.score,
+    required this.syncStatus,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<int>(remoteId);
+    }
+    map['client_uuid'] = Variable<String>(clientUuid);
+    map['meeting_local_id'] = Variable<int>(meetingLocalId);
+    map['student_id'] = Variable<int>(studentId);
+    map['score'] = Variable<double>(score);
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AssignmentScoreRecordsCompanion toCompanion(bool nullToAbsent) {
+    return AssignmentScoreRecordsCompanion(
+      localId: Value(localId),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      clientUuid: Value(clientUuid),
+      meetingLocalId: Value(meetingLocalId),
+      studentId: Value(studentId),
+      score: Value(score),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AssignmentScoreRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AssignmentScoreRecord(
+      localId: serializer.fromJson<int>(json['localId']),
+      remoteId: serializer.fromJson<int?>(json['remoteId']),
+      clientUuid: serializer.fromJson<String>(json['clientUuid']),
+      meetingLocalId: serializer.fromJson<int>(json['meetingLocalId']),
+      studentId: serializer.fromJson<int>(json['studentId']),
+      score: serializer.fromJson<double>(json['score']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'remoteId': serializer.toJson<int?>(remoteId),
+      'clientUuid': serializer.toJson<String>(clientUuid),
+      'meetingLocalId': serializer.toJson<int>(meetingLocalId),
+      'studentId': serializer.toJson<int>(studentId),
+      'score': serializer.toJson<double>(score),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AssignmentScoreRecord copyWith({
+    int? localId,
+    Value<int?> remoteId = const Value.absent(),
+    String? clientUuid,
+    int? meetingLocalId,
+    int? studentId,
+    double? score,
+    String? syncStatus,
+    DateTime? updatedAt,
+  }) => AssignmentScoreRecord(
+    localId: localId ?? this.localId,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
+    clientUuid: clientUuid ?? this.clientUuid,
+    meetingLocalId: meetingLocalId ?? this.meetingLocalId,
+    studentId: studentId ?? this.studentId,
+    score: score ?? this.score,
+    syncStatus: syncStatus ?? this.syncStatus,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AssignmentScoreRecord copyWithCompanion(
+    AssignmentScoreRecordsCompanion data,
+  ) {
+    return AssignmentScoreRecord(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      clientUuid: data.clientUuid.present
+          ? data.clientUuid.value
+          : this.clientUuid,
+      meetingLocalId: data.meetingLocalId.present
+          ? data.meetingLocalId.value
+          : this.meetingLocalId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      score: data.score.present ? data.score.value : this.score,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssignmentScoreRecord(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('meetingLocalId: $meetingLocalId, ')
+          ..write('studentId: $studentId, ')
+          ..write('score: $score, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    remoteId,
+    clientUuid,
+    meetingLocalId,
+    studentId,
+    score,
+    syncStatus,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AssignmentScoreRecord &&
+          other.localId == this.localId &&
+          other.remoteId == this.remoteId &&
+          other.clientUuid == this.clientUuid &&
+          other.meetingLocalId == this.meetingLocalId &&
+          other.studentId == this.studentId &&
+          other.score == this.score &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AssignmentScoreRecordsCompanion
+    extends UpdateCompanion<AssignmentScoreRecord> {
+  final Value<int> localId;
+  final Value<int?> remoteId;
+  final Value<String> clientUuid;
+  final Value<int> meetingLocalId;
+  final Value<int> studentId;
+  final Value<double> score;
+  final Value<String> syncStatus;
+  final Value<DateTime> updatedAt;
+  const AssignmentScoreRecordsCompanion({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.meetingLocalId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.score = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AssignmentScoreRecordsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    required String clientUuid,
+    required int meetingLocalId,
+    required int studentId,
+    required double score,
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : clientUuid = Value(clientUuid),
+       meetingLocalId = Value(meetingLocalId),
+       studentId = Value(studentId),
+       score = Value(score);
+  static Insertable<AssignmentScoreRecord> custom({
+    Expression<int>? localId,
+    Expression<int>? remoteId,
+    Expression<String>? clientUuid,
+    Expression<int>? meetingLocalId,
+    Expression<int>? studentId,
+    Expression<double>? score,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (clientUuid != null) 'client_uuid': clientUuid,
+      if (meetingLocalId != null) 'meeting_local_id': meetingLocalId,
+      if (studentId != null) 'student_id': studentId,
+      if (score != null) 'score': score,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AssignmentScoreRecordsCompanion copyWith({
+    Value<int>? localId,
+    Value<int?>? remoteId,
+    Value<String>? clientUuid,
+    Value<int>? meetingLocalId,
+    Value<int>? studentId,
+    Value<double>? score,
+    Value<String>? syncStatus,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AssignmentScoreRecordsCompanion(
+      localId: localId ?? this.localId,
+      remoteId: remoteId ?? this.remoteId,
+      clientUuid: clientUuid ?? this.clientUuid,
+      meetingLocalId: meetingLocalId ?? this.meetingLocalId,
+      studentId: studentId ?? this.studentId,
+      score: score ?? this.score,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    if (clientUuid.present) {
+      map['client_uuid'] = Variable<String>(clientUuid.value);
+    }
+    if (meetingLocalId.present) {
+      map['meeting_local_id'] = Variable<int>(meetingLocalId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<int>(studentId.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<double>(score.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssignmentScoreRecordsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('meetingLocalId: $meetingLocalId, ')
+          ..write('studentId: $studentId, ')
+          ..write('score: $score, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PendingOperationsTable extends PendingOperations
     with TableInfo<$PendingOperationsTable, PendingOperation> {
   @override
@@ -3833,6 +4974,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DailyTestMeetingRecordsTable(this);
   late final $DailyTestScoreRecordsTable dailyTestScoreRecords =
       $DailyTestScoreRecordsTable(this);
+  late final $AssignmentMeetingRecordsTable assignmentMeetingRecords =
+      $AssignmentMeetingRecordsTable(this);
+  late final $AssignmentScoreRecordsTable assignmentScoreRecords =
+      $AssignmentScoreRecordsTable(this);
   late final $PendingOperationsTable pendingOperations =
       $PendingOperationsTable(this);
   late final $CachedDashboardTable cachedDashboard = $CachedDashboardTable(
@@ -3850,6 +4995,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attendanceRecords,
     dailyTestMeetingRecords,
     dailyTestScoreRecords,
+    assignmentMeetingRecords,
+    assignmentScoreRecords,
     pendingOperations,
     cachedDashboard,
     appMeta,
@@ -5432,6 +6579,622 @@ typedef $$DailyTestScoreRecordsTableProcessedTableManager =
       DailyTestScoreRecord,
       PrefetchHooks Function()
     >;
+typedef $$AssignmentMeetingRecordsTableCreateCompanionBuilder =
+    AssignmentMeetingRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      required String clientUuid,
+      Value<int?> classId,
+      Value<String?> className,
+      required String title,
+      Value<DateTime?> assignmentDate,
+      Value<String?> description,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+typedef $$AssignmentMeetingRecordsTableUpdateCompanionBuilder =
+    AssignmentMeetingRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      Value<String> clientUuid,
+      Value<int?> classId,
+      Value<String?> className,
+      Value<String> title,
+      Value<DateTime?> assignmentDate,
+      Value<String?> description,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+
+class $$AssignmentMeetingRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $AssignmentMeetingRecordsTable> {
+  $$AssignmentMeetingRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get className => $composableBuilder(
+    column: $table.className,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get assignmentDate => $composableBuilder(
+    column: $table.assignmentDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AssignmentMeetingRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AssignmentMeetingRecordsTable> {
+  $$AssignmentMeetingRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get className => $composableBuilder(
+    column: $table.className,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get assignmentDate => $composableBuilder(
+    column: $table.assignmentDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AssignmentMeetingRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AssignmentMeetingRecordsTable> {
+  $$AssignmentMeetingRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get classId =>
+      $composableBuilder(column: $table.classId, builder: (column) => column);
+
+  GeneratedColumn<String> get className =>
+      $composableBuilder(column: $table.className, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get assignmentDate => $composableBuilder(
+    column: $table.assignmentDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AssignmentMeetingRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AssignmentMeetingRecordsTable,
+          AssignmentMeetingRecord,
+          $$AssignmentMeetingRecordsTableFilterComposer,
+          $$AssignmentMeetingRecordsTableOrderingComposer,
+          $$AssignmentMeetingRecordsTableAnnotationComposer,
+          $$AssignmentMeetingRecordsTableCreateCompanionBuilder,
+          $$AssignmentMeetingRecordsTableUpdateCompanionBuilder,
+          (
+            AssignmentMeetingRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $AssignmentMeetingRecordsTable,
+              AssignmentMeetingRecord
+            >,
+          ),
+          AssignmentMeetingRecord,
+          PrefetchHooks Function()
+        > {
+  $$AssignmentMeetingRecordsTableTableManager(
+    _$AppDatabase db,
+    $AssignmentMeetingRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AssignmentMeetingRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AssignmentMeetingRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AssignmentMeetingRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<int?> classId = const Value.absent(),
+                Value<String?> className = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<DateTime?> assignmentDate = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AssignmentMeetingRecordsCompanion(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                classId: classId,
+                className: className,
+                title: title,
+                assignmentDate: assignmentDate,
+                description: description,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                required String clientUuid,
+                Value<int?> classId = const Value.absent(),
+                Value<String?> className = const Value.absent(),
+                required String title,
+                Value<DateTime?> assignmentDate = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AssignmentMeetingRecordsCompanion.insert(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                classId: classId,
+                className: className,
+                title: title,
+                assignmentDate: assignmentDate,
+                description: description,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AssignmentMeetingRecordsTable,
+                    AssignmentMeetingRecord
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AssignmentMeetingRecordsTable,
+                    AssignmentMeetingRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AssignmentMeetingRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AssignmentMeetingRecordsTable,
+      AssignmentMeetingRecord,
+      $$AssignmentMeetingRecordsTableFilterComposer,
+      $$AssignmentMeetingRecordsTableOrderingComposer,
+      $$AssignmentMeetingRecordsTableAnnotationComposer,
+      $$AssignmentMeetingRecordsTableCreateCompanionBuilder,
+      $$AssignmentMeetingRecordsTableUpdateCompanionBuilder,
+      (
+        AssignmentMeetingRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $AssignmentMeetingRecordsTable,
+          AssignmentMeetingRecord
+        >,
+      ),
+      AssignmentMeetingRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$AssignmentScoreRecordsTableCreateCompanionBuilder =
+    AssignmentScoreRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      required String clientUuid,
+      required int meetingLocalId,
+      required int studentId,
+      required double score,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+typedef $$AssignmentScoreRecordsTableUpdateCompanionBuilder =
+    AssignmentScoreRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      Value<String> clientUuid,
+      Value<int> meetingLocalId,
+      Value<int> studentId,
+      Value<double> score,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+
+class $$AssignmentScoreRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $AssignmentScoreRecordsTable> {
+  $$AssignmentScoreRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get meetingLocalId => $composableBuilder(
+    column: $table.meetingLocalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AssignmentScoreRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AssignmentScoreRecordsTable> {
+  $$AssignmentScoreRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get meetingLocalId => $composableBuilder(
+    column: $table.meetingLocalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AssignmentScoreRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AssignmentScoreRecordsTable> {
+  $$AssignmentScoreRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get meetingLocalId => $composableBuilder(
+    column: $table.meetingLocalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get studentId =>
+      $composableBuilder(column: $table.studentId, builder: (column) => column);
+
+  GeneratedColumn<double> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AssignmentScoreRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AssignmentScoreRecordsTable,
+          AssignmentScoreRecord,
+          $$AssignmentScoreRecordsTableFilterComposer,
+          $$AssignmentScoreRecordsTableOrderingComposer,
+          $$AssignmentScoreRecordsTableAnnotationComposer,
+          $$AssignmentScoreRecordsTableCreateCompanionBuilder,
+          $$AssignmentScoreRecordsTableUpdateCompanionBuilder,
+          (
+            AssignmentScoreRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $AssignmentScoreRecordsTable,
+              AssignmentScoreRecord
+            >,
+          ),
+          AssignmentScoreRecord,
+          PrefetchHooks Function()
+        > {
+  $$AssignmentScoreRecordsTableTableManager(
+    _$AppDatabase db,
+    $AssignmentScoreRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AssignmentScoreRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AssignmentScoreRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AssignmentScoreRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<int> meetingLocalId = const Value.absent(),
+                Value<int> studentId = const Value.absent(),
+                Value<double> score = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AssignmentScoreRecordsCompanion(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                meetingLocalId: meetingLocalId,
+                studentId: studentId,
+                score: score,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                required String clientUuid,
+                required int meetingLocalId,
+                required int studentId,
+                required double score,
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AssignmentScoreRecordsCompanion.insert(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                meetingLocalId: meetingLocalId,
+                studentId: studentId,
+                score: score,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $AssignmentScoreRecordsTable,
+                    AssignmentScoreRecord
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AssignmentScoreRecordsTable,
+                    AssignmentScoreRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AssignmentScoreRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AssignmentScoreRecordsTable,
+      AssignmentScoreRecord,
+      $$AssignmentScoreRecordsTableFilterComposer,
+      $$AssignmentScoreRecordsTableOrderingComposer,
+      $$AssignmentScoreRecordsTableAnnotationComposer,
+      $$AssignmentScoreRecordsTableCreateCompanionBuilder,
+      $$AssignmentScoreRecordsTableUpdateCompanionBuilder,
+      (
+        AssignmentScoreRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $AssignmentScoreRecordsTable,
+          AssignmentScoreRecord
+        >,
+      ),
+      AssignmentScoreRecord,
+      PrefetchHooks Function()
+    >;
 typedef $$PendingOperationsTableCreateCompanionBuilder =
     PendingOperationsCompanion Function({
       Value<int> id,
@@ -6038,6 +7801,16 @@ class $AppDatabaseManager {
       );
   $$DailyTestScoreRecordsTableTableManager get dailyTestScoreRecords =>
       $$DailyTestScoreRecordsTableTableManager(_db, _db.dailyTestScoreRecords);
+  $$AssignmentMeetingRecordsTableTableManager get assignmentMeetingRecords =>
+      $$AssignmentMeetingRecordsTableTableManager(
+        _db,
+        _db.assignmentMeetingRecords,
+      );
+  $$AssignmentScoreRecordsTableTableManager get assignmentScoreRecords =>
+      $$AssignmentScoreRecordsTableTableManager(
+        _db,
+        _db.assignmentScoreRecords,
+      );
   $$PendingOperationsTableTableManager get pendingOperations =>
       $$PendingOperationsTableTableManager(_db, _db.pendingOperations);
   $$CachedDashboardTableTableManager get cachedDashboard =>

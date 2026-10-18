@@ -148,16 +148,18 @@ void main() {
     );
 
     for (var i = 0; i < 2; i++) {
-      await db.into(db.attendanceRecords).insert(
-        AttendanceRecordsCompanion.insert(
-          remoteId: Value(100 + i),
-          clientUuid: 'server-${100 + i}',
-          meetingLocalId: meeting.localId,
-          studentId: 5,
-          status: const Value('HADIR'),
-          syncStatus: const Value('synced'),
-        ),
-      );
+      await db
+          .into(db.attendanceRecords)
+          .insert(
+            AttendanceRecordsCompanion.insert(
+              remoteId: Value(100 + i),
+              clientUuid: 'server-${100 + i}',
+              meetingLocalId: meeting.localId,
+              studentId: 5,
+              status: const Value('HADIR'),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
     expect(await db.attendancesForMeeting(meeting.localId), hasLength(2));
 
@@ -174,14 +176,16 @@ void main() {
   });
 
   test('merging duplicate server attendances keeps a single row', () async {
-    await db.into(db.meetingRecords).insert(
-      MeetingRecordsCompanion.insert(
-        remoteId: const Value(50),
-        clientUuid: 'server-50',
-        title: 'Pertemuan Server',
-        syncStatus: const Value('synced'),
-      ),
-    );
+    await db
+        .into(db.meetingRecords)
+        .insert(
+          MeetingRecordsCompanion.insert(
+            remoteId: const Value(50),
+            clientUuid: 'server-50',
+            title: 'Pertemuan Server',
+            syncStatus: const Value('synced'),
+          ),
+        );
     final localId = (await db.allMeetings()).single.localId;
 
     await db.mergeAttendances([
@@ -203,64 +207,73 @@ void main() {
     expect(rows, hasLength(1));
   });
 
-  test('creating a daily test meeting offline enqueues a pending create', () async {
-    final meeting = await db.createDailyTestMeetingLocally(
-      clientUuid: 'daily-1',
-      classId: 1,
-      className: 'Kelas X',
-      title: 'Ulangan Harian Bab 1',
-      testDate: DateTime(2026, 7, 18),
-    );
+  test(
+    'creating a daily test meeting offline enqueues a pending create',
+    () async {
+      final meeting = await db.createDailyTestMeetingLocally(
+        clientUuid: 'daily-1',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Ulangan Harian Bab 1',
+        testDate: DateTime(2026, 7, 18),
+      );
 
-    expect(meeting.syncStatus, 'pending_create');
-    expect(await db.pendingCount(), 1);
-  });
+      expect(meeting.syncStatus, 'pending_create');
+      expect(await db.pendingCount(), 1);
+    },
+  );
 
-  test('saving a score for a pending meeting keeps a single local row', () async {
-    final meeting = await db.createDailyTestMeetingLocally(
-      clientUuid: 'daily-2',
-      classId: 1,
-      className: 'Kelas X',
-      title: 'Ulangan Harian Bab 2',
-    );
+  test(
+    'saving a score for a pending meeting keeps a single local row',
+    () async {
+      final meeting = await db.createDailyTestMeetingLocally(
+        clientUuid: 'daily-2',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Ulangan Harian Bab 2',
+      );
 
-    await db.saveDailyTestScoreLocally(
-      meeting: meeting,
-      studentId: 10,
-      score: 70,
-    );
-    await db.saveDailyTestScoreLocally(
-      meeting: meeting,
-      studentId: 10,
-      score: 95,
-    );
+      await db.saveDailyTestScoreLocally(
+        meeting: meeting,
+        studentId: 10,
+        score: 70,
+      );
+      await db.saveDailyTestScoreLocally(
+        meeting: meeting,
+        studentId: 10,
+        score: 95,
+      );
 
-    final rows = await db.dailyTestScoresForMeeting(meeting.localId);
-    expect(rows, hasLength(1));
-    expect(rows.single.score, 95);
-    // Only the meeting create is queued (scores wait for the meeting).
-    expect(await db.pendingCount(), 1);
-  });
+      final rows = await db.dailyTestScoresForMeeting(meeting.localId);
+      expect(rows, hasLength(1));
+      expect(rows.single.score, 95);
+      // Only the meeting create is queued (scores wait for the meeting).
+      expect(await db.pendingCount(), 1);
+    },
+  );
 
-  test('deleting an unsynced daily test meeting clears its rows and queue', () async {
-    final meeting = await db.createDailyTestMeetingLocally(
-      clientUuid: 'daily-3',
-      classId: 1,
-      className: 'Kelas X',
-      title: 'Ulangan Harian Bab 3',
-    );
-    await db.saveDailyTestScoreLocally(
-      meeting: meeting,
-      studentId: 1,
-      score: 80,
-    );
+  test(
+    'deleting an unsynced daily test meeting clears its rows and queue',
+    () async {
+      final meeting = await db.createDailyTestMeetingLocally(
+        clientUuid: 'daily-3',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Ulangan Harian Bab 3',
+      );
+      await db.saveDailyTestScoreLocally(
+        meeting: meeting,
+        studentId: 1,
+        score: 80,
+      );
 
-    await db.deleteDailyTestMeetingLocally(meeting);
+      await db.deleteDailyTestMeetingLocally(meeting);
 
-    expect(await db.select(db.dailyTestMeetingRecords).get(), isEmpty);
-    expect(await db.dailyTestScoresForMeeting(meeting.localId), isEmpty);
-    expect(await db.pendingCount(), 0);
-  });
+      expect(await db.select(db.dailyTestMeetingRecords).get(), isEmpty);
+      expect(await db.dailyTestScoresForMeeting(meeting.localId), isEmpty);
+      expect(await db.pendingCount(), 0);
+    },
+  );
 
   test('merging server daily tests preserves offline-created rows', () async {
     await db.createDailyTestMeetingLocally(
@@ -286,65 +299,203 @@ void main() {
     expect(meetings.any((m) => m.title == 'Server Ulangan'), isTrue);
   });
 
-  test('merging duplicate server daily test scores keeps a single row', () async {
-    await db.into(db.dailyTestMeetingRecords).insert(
-      DailyTestMeetingRecordsCompanion.insert(
-        remoteId: const Value(50),
-        clientUuid: 'server-50',
-        title: 'Ulangan Server',
-        syncStatus: const Value('synced'),
-      ),
-    );
-    final localId = (await db.select(
-      db.dailyTestMeetingRecords,
-    ).get()).single.localId;
+  test(
+    'merging duplicate server daily test scores keeps a single row',
+    () async {
+      await db
+          .into(db.dailyTestMeetingRecords)
+          .insert(
+            DailyTestMeetingRecordsCompanion.insert(
+              remoteId: const Value(50),
+              clientUuid: 'server-50',
+              title: 'Ulangan Server',
+              syncStatus: const Value('synced'),
+            ),
+          );
+      final localId =
+          (await db.select(db.dailyTestMeetingRecords).get()).single.localId;
 
-    await db.mergeDailyTestScores([
-      ServerDailyTestScore(
-        id: 201,
-        meetingRemoteId: 50,
-        studentId: 9,
+      await db.mergeDailyTestScores([
+        ServerDailyTestScore(
+          id: 201,
+          meetingRemoteId: 50,
+          studentId: 9,
+          score: 80,
+        ),
+        ServerDailyTestScore(
+          id: 202,
+          meetingRemoteId: 50,
+          studentId: 9,
+          score: 90,
+        ),
+      ]);
+
+      final rows = await db.dailyTestScoresForMeeting(localId);
+      expect(rows, hasLength(1));
+    },
+  );
+
+  test(
+    'creating an assignment meeting offline enqueues a pending create',
+    () async {
+      final meeting = await db.createAssignmentMeetingLocally(
+        clientUuid: 'assignment-1',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Tugas Bab 1',
+        assignmentDate: DateTime(2026, 7, 18),
+      );
+
+      expect(meeting.syncStatus, 'pending_create');
+      expect(await db.pendingCount(), 1);
+    },
+  );
+
+  test(
+    'saving an assignment score for a pending meeting keeps one row',
+    () async {
+      final meeting = await db.createAssignmentMeetingLocally(
+        clientUuid: 'assignment-2',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Tugas Bab 2',
+      );
+
+      await db.saveAssignmentScoreLocally(
+        meeting: meeting,
+        studentId: 10,
+        score: 70,
+      );
+      await db.saveAssignmentScoreLocally(
+        meeting: meeting,
+        studentId: 10,
+        score: 95,
+      );
+
+      final rows = await db.assignmentScoresForMeeting(meeting.localId);
+      expect(rows, hasLength(1));
+      expect(rows.single.score, 95);
+      // Only the meeting create is queued (scores wait for the meeting).
+      expect(await db.pendingCount(), 1);
+    },
+  );
+
+  test(
+    'deleting an unsynced assignment meeting clears its rows and queue',
+    () async {
+      final meeting = await db.createAssignmentMeetingLocally(
+        clientUuid: 'assignment-3',
+        classId: 1,
+        className: 'Kelas X',
+        title: 'Tugas Bab 3',
+      );
+      await db.saveAssignmentScoreLocally(
+        meeting: meeting,
+        studentId: 1,
         score: 80,
-      ),
-      ServerDailyTestScore(
-        id: 202,
-        meetingRemoteId: 50,
-        studentId: 9,
-        score: 90,
+      );
+
+      await db.deleteAssignmentMeetingLocally(meeting);
+
+      expect(await db.select(db.assignmentMeetingRecords).get(), isEmpty);
+      expect(await db.assignmentScoresForMeeting(meeting.localId), isEmpty);
+      expect(await db.pendingCount(), 0);
+    },
+  );
+
+  test('merging server assignments preserves offline-created rows', () async {
+    await db.createAssignmentMeetingLocally(
+      clientUuid: 'assignment-4',
+      classId: 1,
+      className: 'Kelas X',
+      title: 'Offline Tugas',
+    );
+
+    await db.mergeAssignmentMeetings([
+      ServerAssignmentMeeting(
+        id: 99,
+        classId: 2,
+        className: 'Kelas XI',
+        title: 'Server Tugas',
+        assignmentDate: DateTime(2026, 7, 19),
       ),
     ]);
 
-    final rows = await db.dailyTestScoresForMeeting(localId);
-    expect(rows, hasLength(1));
+    final meetings = await db.select(db.assignmentMeetingRecords).get();
+    expect(meetings, hasLength(2));
+    expect(meetings.any((m) => m.title == 'Offline Tugas'), isTrue);
+    expect(meetings.any((m) => m.title == 'Server Tugas'), isTrue);
   });
 
-  test('saving a score for a synced meeting queues a single create op', () async {
-    await db.into(db.dailyTestMeetingRecords).insert(
-      DailyTestMeetingRecordsCompanion.insert(
-        remoteId: const Value(60),
-        clientUuid: 'server-60',
-        title: 'Ulangan Tersinkron',
-        syncStatus: const Value('synced'),
-      ),
-    );
-    final meeting = (await db.select(db.dailyTestMeetingRecords).get()).single;
+  test(
+    'merging duplicate server assignment scores keeps a single row',
+    () async {
+      await db
+          .into(db.assignmentMeetingRecords)
+          .insert(
+            AssignmentMeetingRecordsCompanion.insert(
+              remoteId: const Value(50),
+              clientUuid: 'server-50',
+              title: 'Tugas Server',
+              syncStatus: const Value('synced'),
+            ),
+          );
+      final localId =
+          (await db.select(db.assignmentMeetingRecords).get()).single.localId;
 
-    await db.saveDailyTestScoreLocally(
-      meeting: meeting,
-      studentId: 3,
-      score: 65,
-    );
-    expect(await db.pendingCount(), 1);
+      await db.mergeAssignmentScores([
+        ServerAssignmentScore(
+          id: 201,
+          meetingRemoteId: 50,
+          studentId: 9,
+          score: 80,
+        ),
+        ServerAssignmentScore(
+          id: 202,
+          meetingRemoteId: 50,
+          studentId: 9,
+          score: 90,
+        ),
+      ]);
 
-    await db.saveDailyTestScoreLocally(
-      meeting: meeting,
-      studentId: 3,
-      score: 75,
-    );
+      final rows = await db.assignmentScoresForMeeting(localId);
+      expect(rows, hasLength(1));
+    },
+  );
 
-    final rows = await db.dailyTestScoresForMeeting(meeting.localId);
-    expect(rows, hasLength(1));
-    expect(rows.single.score, 75);
-    expect(await db.pendingCount(), 1);
-  });
+  test(
+    'saving a score for a synced meeting queues a single create op',
+    () async {
+      await db
+          .into(db.dailyTestMeetingRecords)
+          .insert(
+            DailyTestMeetingRecordsCompanion.insert(
+              remoteId: const Value(60),
+              clientUuid: 'server-60',
+              title: 'Ulangan Tersinkron',
+              syncStatus: const Value('synced'),
+            ),
+          );
+      final meeting =
+          (await db.select(db.dailyTestMeetingRecords).get()).single;
+
+      await db.saveDailyTestScoreLocally(
+        meeting: meeting,
+        studentId: 3,
+        score: 65,
+      );
+      expect(await db.pendingCount(), 1);
+
+      await db.saveDailyTestScoreLocally(
+        meeting: meeting,
+        studentId: 3,
+        score: 75,
+      );
+
+      final rows = await db.dailyTestScoresForMeeting(meeting.localId);
+      expect(rows, hasLength(1));
+      expect(rows.single.score, 75);
+      expect(await db.pendingCount(), 1);
+    },
+  );
 }

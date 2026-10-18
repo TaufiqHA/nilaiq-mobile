@@ -88,6 +88,34 @@ class DailyTestScoreRecords extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Assignment (tugas) meetings. Offline-created rows keep a local id until
+/// synced.
+class AssignmentMeetingRecords extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  IntColumn get remoteId => integer().nullable()();
+  TextColumn get clientUuid => text()();
+  IntColumn get classId => integer().nullable()();
+  TextColumn get className => text().nullable()();
+  TextColumn get title => text()();
+  DateTimeColumn get assignmentDate => dateTime().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// Assignment scores per meeting/student.
+class AssignmentScoreRecords extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  IntColumn get remoteId => integer().nullable()();
+  TextColumn get clientUuid => text()();
+  IntColumn get meetingLocalId => integer()();
+  IntColumn get studentId => integer()();
+  RealColumn get score => real()();
+  TextColumn get syncStatus =>
+      text().withDefault(const Constant('pending_create'))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 /// Outbox queue of operations waiting to be pushed to the server.
 class PendingOperations extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -127,6 +155,8 @@ class AppMeta extends Table {
     AttendanceRecords,
     DailyTestMeetingRecords,
     DailyTestScoreRecords,
+    AssignmentMeetingRecords,
+    AssignmentScoreRecords,
     PendingOperations,
     CachedDashboard,
     AppMeta,
@@ -138,7 +168,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -147,6 +177,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(dailyTestMeetingRecords);
         await m.createTable(dailyTestScoreRecords);
+      }
+      if (from < 3) {
+        await m.createTable(assignmentMeetingRecords);
+        await m.createTable(assignmentScoreRecords);
       }
     },
   );
@@ -276,12 +310,13 @@ class AppDatabase extends _$AppDatabase {
           continue;
         }
 
-        final samePair = await (select(attendanceRecords)..where(
-              (t) =>
-                  t.meetingLocalId.equals(meetingLocalId) &
-                  t.studentId.equals(a.studentId),
-            ))
-            .get();
+        final samePair =
+            await (select(attendanceRecords)..where(
+                  (t) =>
+                      t.meetingLocalId.equals(meetingLocalId) &
+                      t.studentId.equals(a.studentId),
+                ))
+                .get();
         if (samePair.any((r) => r.syncStatus != 'synced')) {
           // Keep the pending offline edit; do not create a duplicate row.
           continue;
@@ -323,19 +358,18 @@ class AppDatabase extends _$AppDatabase {
     int localId,
     int meetingLocalId,
     ServerAttendance a,
-  ) =>
-      (update(attendanceRecords)..where((t) => t.localId.equals(localId)))
-          .write(
-            AttendanceRecordsCompanion(
-              remoteId: Value(a.id),
-              meetingLocalId: Value(meetingLocalId),
-              studentId: Value(a.studentId),
-              status: Value(a.status),
-              note: Value(a.note),
-              syncStatus: const Value('synced'),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+  ) => (update(attendanceRecords)..where((t) => t.localId.equals(localId)))
+      .write(
+        AttendanceRecordsCompanion(
+          remoteId: Value(a.id),
+          meetingLocalId: Value(meetingLocalId),
+          studentId: Value(a.studentId),
+          status: Value(a.status),
+          note: Value(a.note),
+          syncStatus: const Value('synced'),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   /// Collapses duplicate attendance rows for the same (meeting, student).
   ///
@@ -483,24 +517,33 @@ class AppDatabase extends _$AppDatabase {
         final tracked = byRemote[s.id];
         if (tracked != null) {
           if (tracked.syncStatus == 'synced') {
-            await _writeServerDailyTestScore(tracked.localId, meetingLocalId, s);
+            await _writeServerDailyTestScore(
+              tracked.localId,
+              meetingLocalId,
+              s,
+            );
           }
           continue;
         }
 
-        final samePair = await (select(dailyTestScoreRecords)..where(
-              (t) =>
-                  t.meetingLocalId.equals(meetingLocalId) &
-                  t.studentId.equals(s.studentId),
-            ))
-            .get();
+        final samePair =
+            await (select(dailyTestScoreRecords)..where(
+                  (t) =>
+                      t.meetingLocalId.equals(meetingLocalId) &
+                      t.studentId.equals(s.studentId),
+                ))
+                .get();
         if (samePair.any((r) => r.syncStatus != 'synced')) {
           // Keep the pending offline edit; do not create a duplicate row.
           continue;
         }
         if (samePair.isNotEmpty) {
           final canonical = _canonicalDailyTestScore(samePair);
-          await _writeServerDailyTestScore(canonical.localId, meetingLocalId, s);
+          await _writeServerDailyTestScore(
+            canonical.localId,
+            meetingLocalId,
+            s,
+          );
           continue;
         }
 
@@ -534,18 +577,17 @@ class AppDatabase extends _$AppDatabase {
     int localId,
     int meetingLocalId,
     ServerDailyTestScore s,
-  ) =>
-      (update(dailyTestScoreRecords)..where((t) => t.localId.equals(localId)))
-          .write(
-            DailyTestScoreRecordsCompanion(
-              remoteId: Value(s.id),
-              meetingLocalId: Value(meetingLocalId),
-              studentId: Value(s.studentId),
-              score: Value(s.score),
-              syncStatus: const Value('synced'),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+  ) => (update(dailyTestScoreRecords)..where((t) => t.localId.equals(localId)))
+      .write(
+        DailyTestScoreRecordsCompanion(
+          remoteId: Value(s.id),
+          meetingLocalId: Value(meetingLocalId),
+          studentId: Value(s.studentId),
+          score: Value(s.score),
+          syncStatus: const Value('synced'),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   /// Collapses duplicate daily test score rows for the same (meeting, student).
   Future<void> _collapseDailyTestScoreDuplicates() async {
@@ -615,6 +657,224 @@ class AppDatabase extends _$AppDatabase {
     return row?.localId;
   }
 
+  /// Merges server assignment meetings, preserving offline-created rows.
+  Future<void> mergeAssignmentMeetings(
+    List<ServerAssignmentMeeting> meetings,
+  ) async {
+    await transaction(() async {
+      final synced = await (select(
+        assignmentMeetingRecords,
+      )..where((t) => t.syncStatus.equals('synced'))).get();
+      final syncedByRemote = {for (final m in synced) m.remoteId: m};
+      final seenRemote = <int>{};
+
+      for (final m in meetings) {
+        seenRemote.add(m.id);
+        final existing = syncedByRemote[m.id];
+        if (existing != null) {
+          await (update(
+            assignmentMeetingRecords,
+          )..where((t) => t.localId.equals(existing.localId))).write(
+            AssignmentMeetingRecordsCompanion(
+              classId: Value(m.classId),
+              className: Value(m.className),
+              title: Value(m.title),
+              assignmentDate: Value(m.assignmentDate),
+              description: Value(m.description),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+        } else {
+          await into(assignmentMeetingRecords).insert(
+            AssignmentMeetingRecordsCompanion.insert(
+              remoteId: Value(m.id),
+              clientUuid: 'server-${m.id}',
+              classId: Value(m.classId),
+              className: Value(m.className),
+              title: m.title,
+              assignmentDate: Value(m.assignmentDate),
+              description: Value(m.description),
+              syncStatus: const Value('synced'),
+            ),
+          );
+        }
+      }
+
+      for (final m in synced) {
+        if (m.remoteId != null && !seenRemote.contains(m.remoteId)) {
+          await (delete(
+            assignmentScoreRecords,
+          )..where((t) => t.meetingLocalId.equals(m.localId))).go();
+          await (delete(
+            assignmentMeetingRecords,
+          )..where((t) => t.localId.equals(m.localId))).go();
+        }
+      }
+    });
+  }
+
+  /// Merges server assignment scores, preserving offline rows.
+  Future<void> mergeAssignmentScores(List<ServerAssignmentScore> scores) async {
+    await transaction(() async {
+      final before = await select(assignmentScoreRecords).get();
+      final byRemote = <int, AssignmentScoreRecord>{
+        for (final r in before)
+          if (r.remoteId != null) r.remoteId!: r,
+      };
+      final seenRemote = <int>{};
+
+      for (final s in scores) {
+        final meetingLocalId = await _assignmentMeetingLocalIdForRemote(
+          s.meetingRemoteId,
+        );
+        if (meetingLocalId == null) {
+          continue;
+        }
+        seenRemote.add(s.id);
+
+        final tracked = byRemote[s.id];
+        if (tracked != null) {
+          if (tracked.syncStatus == 'synced') {
+            await _writeServerAssignmentScore(
+              tracked.localId,
+              meetingLocalId,
+              s,
+            );
+          }
+          continue;
+        }
+
+        final samePair =
+            await (select(assignmentScoreRecords)..where(
+                  (t) =>
+                      t.meetingLocalId.equals(meetingLocalId) &
+                      t.studentId.equals(s.studentId),
+                ))
+                .get();
+        if (samePair.any((r) => r.syncStatus != 'synced')) {
+          // Keep the pending offline edit; do not create a duplicate row.
+          continue;
+        }
+        if (samePair.isNotEmpty) {
+          final canonical = _canonicalAssignmentScore(samePair);
+          await _writeServerAssignmentScore(
+            canonical.localId,
+            meetingLocalId,
+            s,
+          );
+          continue;
+        }
+
+        await into(assignmentScoreRecords).insert(
+          AssignmentScoreRecordsCompanion.insert(
+            remoteId: Value(s.id),
+            clientUuid: 'server-${s.id}',
+            meetingLocalId: meetingLocalId,
+            studentId: s.studentId,
+            score: s.score,
+            syncStatus: const Value('synced'),
+          ),
+        );
+      }
+
+      for (final r in before) {
+        if (r.syncStatus == 'synced' &&
+            r.remoteId != null &&
+            !seenRemote.contains(r.remoteId)) {
+          await (delete(
+            assignmentScoreRecords,
+          )..where((t) => t.localId.equals(r.localId))).go();
+        }
+      }
+
+      await _collapseAssignmentScoreDuplicates();
+    });
+  }
+
+  Future<void> _writeServerAssignmentScore(
+    int localId,
+    int meetingLocalId,
+    ServerAssignmentScore s,
+  ) => (update(assignmentScoreRecords)..where((t) => t.localId.equals(localId)))
+      .write(
+        AssignmentScoreRecordsCompanion(
+          remoteId: Value(s.id),
+          meetingLocalId: Value(meetingLocalId),
+          studentId: Value(s.studentId),
+          score: Value(s.score),
+          syncStatus: const Value('synced'),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+  /// Collapses duplicate assignment score rows for the same (meeting, student).
+  Future<void> _collapseAssignmentScoreDuplicates() async {
+    final rows = await select(assignmentScoreRecords).get();
+    final groups = <String, List<AssignmentScoreRecord>>{};
+    for (final r in rows) {
+      groups.putIfAbsent('${r.meetingLocalId}:${r.studentId}', () => []).add(r);
+    }
+
+    for (final group in groups.values) {
+      if (group.length < 2) {
+        continue;
+      }
+      final canonical = _canonicalAssignmentScore(group);
+      for (final r in group) {
+        if (r.localId == canonical.localId) {
+          continue;
+        }
+        await (delete(pendingOperations)..where(
+              (t) =>
+                  t.entity.equals('assignment_score') &
+                  t.localId.equals(r.localId),
+            ))
+            .go();
+        await (delete(
+          assignmentScoreRecords,
+        )..where((t) => t.localId.equals(r.localId))).go();
+      }
+    }
+  }
+
+  /// Removes any pre-existing duplicate assignment score rows from the cache.
+  Future<void> dedupeAssignmentScores() =>
+      transaction(_collapseAssignmentScoreDuplicates);
+
+  static AssignmentScoreRecord _canonicalAssignmentScore(
+    List<AssignmentScoreRecord> rows,
+  ) {
+    int rank(AssignmentScoreRecord r) {
+      final hasRemote = r.remoteId != null;
+      final pending = r.syncStatus != 'synced';
+      if (hasRemote && pending) {
+        return 0;
+      }
+      if (hasRemote) {
+        return 1;
+      }
+      if (pending) {
+        return 2;
+      }
+      return 3;
+    }
+
+    return rows.reduce((a, b) {
+      final byRank = rank(a).compareTo(rank(b));
+      if (byRank != 0) {
+        return byRank < 0 ? a : b;
+      }
+      return a.updatedAt.isAfter(b.updatedAt) ? a : b;
+    });
+  }
+
+  Future<int?> _assignmentMeetingLocalIdForRemote(int remoteId) async {
+    final row = await (select(
+      assignmentMeetingRecords,
+    )..where((t) => t.remoteId.equals(remoteId))).getSingleOrNull();
+    return row?.localId;
+  }
+
   // ---------------------------------------------------------------------------
   // Reads
   // ---------------------------------------------------------------------------
@@ -659,10 +919,8 @@ class AppDatabase extends _$AppDatabase {
 
   Stream<List<DailyTestMeetingRecord>> watchDailyTestMeetings() =>
       (select(dailyTestMeetingRecords)..orderBy([
-            (t) => OrderingTerm(
-              expression: t.testDate,
-              mode: OrderingMode.desc,
-            ),
+            (t) =>
+                OrderingTerm(expression: t.testDate, mode: OrderingMode.desc),
             (t) => OrderingTerm(expression: t.localId, mode: OrderingMode.desc),
           ]))
           .watch();
@@ -677,6 +935,28 @@ class AppDatabase extends _$AppDatabase {
     int meetingLocalId,
   ) => (select(
     dailyTestScoreRecords,
+  )..where((t) => t.meetingLocalId.equals(meetingLocalId))).get();
+
+  Stream<List<AssignmentMeetingRecord>> watchAssignmentMeetings() =>
+      (select(assignmentMeetingRecords)..orderBy([
+            (t) => OrderingTerm(
+              expression: t.assignmentDate,
+              mode: OrderingMode.desc,
+            ),
+            (t) => OrderingTerm(expression: t.localId, mode: OrderingMode.desc),
+          ]))
+          .watch();
+
+  Stream<List<AssignmentScoreRecord>> watchAssignmentScoresForMeeting(
+    int meetingLocalId,
+  ) => (select(
+    assignmentScoreRecords,
+  )..where((t) => t.meetingLocalId.equals(meetingLocalId))).watch();
+
+  Future<List<AssignmentScoreRecord>> assignmentScoresForMeeting(
+    int meetingLocalId,
+  ) => (select(
+    assignmentScoreRecords,
   )..where((t) => t.meetingLocalId.equals(meetingLocalId))).get();
 
   // ---------------------------------------------------------------------------
@@ -781,12 +1061,13 @@ class AppDatabase extends _$AppDatabase {
     required String status,
     String? note,
   }) async {
-    final matches = await (select(attendanceRecords)..where(
-          (t) =>
-              t.meetingLocalId.equals(meeting.localId) &
-              t.studentId.equals(studentId),
-        ))
-        .get();
+    final matches =
+        await (select(attendanceRecords)..where(
+              (t) =>
+                  t.meetingLocalId.equals(meeting.localId) &
+                  t.studentId.equals(studentId),
+            ))
+            .get();
 
     if (matches.isEmpty) {
       final localId = await into(attendanceRecords).insert(
@@ -849,13 +1130,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _ensureAttendanceCreateOp(int localId) async {
-    final pending = await (select(pendingOperations)..where(
-          (t) =>
-              t.entity.equals('attendance') &
-              t.localId.equals(localId) &
-              t.operation.equals('create'),
-        ))
-        .getSingleOrNull();
+    final pending =
+        await (select(pendingOperations)..where(
+              (t) =>
+                  t.entity.equals('attendance') &
+                  t.localId.equals(localId) &
+                  t.operation.equals('create'),
+            ))
+            .getSingleOrNull();
     if (pending == null) {
       await enqueue(
         entity: 'attendance',
@@ -965,12 +1247,13 @@ class AppDatabase extends _$AppDatabase {
     required int studentId,
     required double score,
   }) async {
-    final matches = await (select(dailyTestScoreRecords)..where(
-          (t) =>
-              t.meetingLocalId.equals(meeting.localId) &
-              t.studentId.equals(studentId),
-        ))
-        .get();
+    final matches =
+        await (select(dailyTestScoreRecords)..where(
+              (t) =>
+                  t.meetingLocalId.equals(meeting.localId) &
+                  t.studentId.equals(studentId),
+            ))
+            .get();
 
     if (matches.isEmpty) {
       final localId = await into(dailyTestScoreRecords).insert(
@@ -1031,16 +1314,201 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _ensureDailyTestScoreCreateOp(int localId) async {
-    final pending = await (select(pendingOperations)..where(
-          (t) =>
-              t.entity.equals('daily_test_score') &
-              t.localId.equals(localId) &
-              t.operation.equals('create'),
-        ))
-        .getSingleOrNull();
+    final pending =
+        await (select(pendingOperations)..where(
+              (t) =>
+                  t.entity.equals('daily_test_score') &
+                  t.localId.equals(localId) &
+                  t.operation.equals('create'),
+            ))
+            .getSingleOrNull();
     if (pending == null) {
       await enqueue(
         entity: 'daily_test_score',
+        localId: localId,
+        operation: 'create',
+      );
+    }
+  }
+
+  Future<AssignmentMeetingRecord> createAssignmentMeetingLocally({
+    required String clientUuid,
+    int? classId,
+    String? className,
+    required String title,
+    DateTime? assignmentDate,
+    String? description,
+  }) async {
+    final localId = await into(assignmentMeetingRecords).insert(
+      AssignmentMeetingRecordsCompanion.insert(
+        clientUuid: clientUuid,
+        classId: Value(classId),
+        className: Value(className),
+        title: title,
+        assignmentDate: Value(assignmentDate),
+        description: Value(description),
+        syncStatus: const Value('pending_create'),
+      ),
+    );
+    await enqueue(
+      entity: 'assignment_meeting',
+      localId: localId,
+      operation: 'create',
+    );
+    return (select(
+      assignmentMeetingRecords,
+    )..where((t) => t.localId.equals(localId))).getSingle();
+  }
+
+  Future<void> updateAssignmentMeetingLocally(
+    AssignmentMeetingRecord meeting, {
+    int? classId,
+    String? className,
+    String? title,
+    DateTime? assignmentDate,
+    String? description,
+  }) async {
+    final keepPendingCreate = meeting.syncStatus == 'pending_create';
+    await (update(
+      assignmentMeetingRecords,
+    )..where((t) => t.localId.equals(meeting.localId))).write(
+      AssignmentMeetingRecordsCompanion(
+        classId: Value(classId),
+        className: Value(className),
+        title: Value(title ?? meeting.title),
+        assignmentDate: Value(assignmentDate),
+        description: Value(description),
+        syncStatus: Value(
+          keepPendingCreate ? 'pending_create' : 'pending_update',
+        ),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    if (!keepPendingCreate) {
+      await enqueue(
+        entity: 'assignment_meeting',
+        localId: meeting.localId,
+        operation: 'update',
+      );
+    }
+  }
+
+  Future<void> deleteAssignmentMeetingLocally(
+    AssignmentMeetingRecord meeting,
+  ) async {
+    if (meeting.syncStatus == 'pending_create') {
+      await (delete(
+        assignmentScoreRecords,
+      )..where((t) => t.meetingLocalId.equals(meeting.localId))).go();
+      await (delete(pendingOperations)..where(
+            (t) =>
+                t.entity.equals('assignment_meeting') &
+                t.localId.equals(meeting.localId),
+          ))
+          .go();
+      await (delete(
+        assignmentMeetingRecords,
+      )..where((t) => t.localId.equals(meeting.localId))).go();
+      return;
+    }
+
+    await enqueue(
+      entity: 'assignment_meeting',
+      localId: meeting.localId,
+      operation: 'delete',
+      payload: {'remote_id': meeting.remoteId},
+    );
+    await (delete(
+      assignmentScoreRecords,
+    )..where((t) => t.meetingLocalId.equals(meeting.localId))).go();
+    await (delete(
+      assignmentMeetingRecords,
+    )..where((t) => t.localId.equals(meeting.localId))).go();
+  }
+
+  Future<void> saveAssignmentScoreLocally({
+    required AssignmentMeetingRecord meeting,
+    required int studentId,
+    required double score,
+  }) async {
+    final matches =
+        await (select(assignmentScoreRecords)..where(
+              (t) =>
+                  t.meetingLocalId.equals(meeting.localId) &
+                  t.studentId.equals(studentId),
+            ))
+            .get();
+
+    if (matches.isEmpty) {
+      final localId = await into(assignmentScoreRecords).insert(
+        AssignmentScoreRecordsCompanion.insert(
+          clientUuid: const Uuid().v4(),
+          meetingLocalId: meeting.localId,
+          studentId: studentId,
+          score: score,
+        ),
+      );
+      if (meeting.syncStatus == 'synced') {
+        await enqueue(
+          entity: 'assignment_score',
+          localId: localId,
+          operation: 'create',
+        );
+      }
+      return;
+    }
+
+    final existing = _canonicalAssignmentScore(matches);
+    final hasRemote = existing.remoteId != null;
+    await (update(
+      assignmentScoreRecords,
+    )..where((t) => t.localId.equals(existing.localId))).write(
+      AssignmentScoreRecordsCompanion(
+        score: Value(score),
+        syncStatus: Value(hasRemote ? 'pending_update' : 'pending_create'),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    for (final row in matches) {
+      if (row.localId == existing.localId) {
+        continue;
+      }
+      await (delete(pendingOperations)..where(
+            (t) =>
+                t.entity.equals('assignment_score') &
+                t.localId.equals(row.localId),
+          ))
+          .go();
+      await (delete(
+        assignmentScoreRecords,
+      )..where((t) => t.localId.equals(row.localId))).go();
+    }
+
+    if (meeting.syncStatus == 'synced') {
+      if (hasRemote) {
+        await enqueue(
+          entity: 'assignment_score',
+          localId: existing.localId,
+          operation: 'update',
+        );
+      } else {
+        await _ensureAssignmentScoreCreateOp(existing.localId);
+      }
+    }
+  }
+
+  Future<void> _ensureAssignmentScoreCreateOp(int localId) async {
+    final pending =
+        await (select(pendingOperations)..where(
+              (t) =>
+                  t.entity.equals('assignment_score') &
+                  t.localId.equals(localId) &
+                  t.operation.equals('create'),
+            ))
+            .getSingleOrNull();
+    if (pending == null) {
+      await enqueue(
+        entity: 'assignment_score',
         localId: localId,
         operation: 'create',
       );
@@ -1164,10 +1632,9 @@ class AppDatabase extends _$AppDatabase {
         dailyTestMeetingRecords,
       )..where((t) => t.localId.equals(localId))).getSingleOrNull();
 
-  Future<DailyTestScoreRecord?> dailyTestScoreByLocalId(int localId) =>
-      (select(
-        dailyTestScoreRecords,
-      )..where((t) => t.localId.equals(localId))).getSingleOrNull();
+  Future<DailyTestScoreRecord?> dailyTestScoreByLocalId(int localId) => (select(
+    dailyTestScoreRecords,
+  )..where((t) => t.localId.equals(localId))).getSingleOrNull();
 
   Future<void> markDailyTestMeetingSynced(int localId, {int? remoteId}) =>
       (update(
@@ -1204,12 +1671,13 @@ class AppDatabase extends _$AppDatabase {
       if (s.syncStatus == 'synced') {
         continue;
       }
-      final pending = await (select(pendingOperations)..where(
-            (t) =>
-                t.entity.equals('daily_test_score') &
-                t.localId.equals(s.localId),
-          ))
-          .getSingleOrNull();
+      final pending =
+          await (select(pendingOperations)..where(
+                (t) =>
+                    t.entity.equals('daily_test_score') &
+                    t.localId.equals(s.localId),
+              ))
+              .getSingleOrNull();
       if (pending != null) {
         continue;
       }
@@ -1222,6 +1690,79 @@ class AppDatabase extends _$AppDatabase {
       );
       await enqueue(
         entity: 'daily_test_score',
+        localId: s.localId,
+        operation: 'create',
+      );
+    }
+  }
+
+  Future<AssignmentMeetingRecord?> assignmentMeetingByLocalId(int localId) =>
+      (select(
+        assignmentMeetingRecords,
+      )..where((t) => t.localId.equals(localId))).getSingleOrNull();
+
+  Future<AssignmentScoreRecord?> assignmentScoreByLocalId(int localId) =>
+      (select(
+        assignmentScoreRecords,
+      )..where((t) => t.localId.equals(localId))).getSingleOrNull();
+
+  Future<void> markAssignmentMeetingSynced(int localId, {int? remoteId}) =>
+      (update(
+        assignmentMeetingRecords,
+      )..where((t) => t.localId.equals(localId))).write(
+        AssignmentMeetingRecordsCompanion(
+          remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+          syncStatus: const Value('synced'),
+        ),
+      );
+
+  Future<void> markAssignmentScoreSynced(int localId, {int? remoteId}) =>
+      (update(
+        assignmentScoreRecords,
+      )..where((t) => t.localId.equals(localId))).write(
+        AssignmentScoreRecordsCompanion(
+          remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+          syncStatus: const Value('synced'),
+        ),
+      );
+
+  /// Repairs the client UUID of a locally stored assignment score row.
+  Future<void> setAssignmentScoreClientUuid(int localId, String clientUuid) =>
+      (update(
+        assignmentScoreRecords,
+      )..where((t) => t.localId.equals(localId))).write(
+        AssignmentScoreRecordsCompanion(clientUuid: Value(clientUuid)),
+      );
+
+  /// Queues create operations for assignment scores belonging to a freshly
+  /// synced meeting (used for data captured fully offline).
+  Future<void> enqueueAssignmentScoreCreatesForMeeting(
+    int meetingLocalId,
+  ) async {
+    final rows = await assignmentScoresForMeeting(meetingLocalId);
+    for (final s in rows) {
+      if (s.syncStatus == 'synced') {
+        continue;
+      }
+      final pending =
+          await (select(pendingOperations)..where(
+                (t) =>
+                    t.entity.equals('assignment_score') &
+                    t.localId.equals(s.localId),
+              ))
+              .getSingleOrNull();
+      if (pending != null) {
+        continue;
+      }
+      await (update(
+        assignmentScoreRecords,
+      )..where((t) => t.localId.equals(s.localId))).write(
+        const AssignmentScoreRecordsCompanion(
+          syncStatus: Value('pending_create'),
+        ),
+      );
+      await enqueue(
+        entity: 'assignment_score',
         localId: s.localId,
         operation: 'create',
       );
@@ -1321,6 +1862,8 @@ class AppDatabase extends _$AppDatabase {
       await delete(attendanceRecords).go();
       await delete(dailyTestMeetingRecords).go();
       await delete(dailyTestScoreRecords).go();
+      await delete(assignmentMeetingRecords).go();
+      await delete(assignmentScoreRecords).go();
       await delete(pendingOperations).go();
       await delete(cachedDashboard).go();
       await delete(cachedClasses).go();
@@ -1412,6 +1955,38 @@ class ServerDailyTestMeeting {
 
 class ServerDailyTestScore {
   ServerDailyTestScore({
+    required this.id,
+    required this.meetingRemoteId,
+    required this.studentId,
+    required this.score,
+  });
+
+  final int id;
+  final int meetingRemoteId;
+  final int studentId;
+  final double score;
+}
+
+class ServerAssignmentMeeting {
+  ServerAssignmentMeeting({
+    required this.id,
+    this.classId,
+    this.className,
+    required this.title,
+    this.assignmentDate,
+    this.description,
+  });
+
+  final int id;
+  final int? classId;
+  final String? className;
+  final String title;
+  final DateTime? assignmentDate;
+  final String? description;
+}
+
+class ServerAssignmentScore {
+  ServerAssignmentScore({
     required this.id,
     required this.meetingRemoteId,
     required this.studentId,
