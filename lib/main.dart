@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/env.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'data/local/database.dart';
 import 'providers/infrastructure_providers.dart';
 import 'providers/session_provider.dart';
 import 'providers/sync_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/absensi_list_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/exam_list_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/tugas_list_screen.dart';
@@ -90,6 +92,10 @@ class _NilaiQAppState extends ConsumerState<NilaiQApp> {
               return const UlanganHarianListScreen();
             case '/tugas':
               return const TugasListScreen();
+            case '/pts':
+              return const ExamListScreen(kind: examKindMidterm);
+            case '/pas':
+              return const ExamListScreen(kind: examKindFinal);
             case '/profile':
               return const ProfileScreen();
             case '/dashboard':

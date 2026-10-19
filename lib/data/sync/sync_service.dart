@@ -9,9 +9,11 @@ import '../local/database.dart';
 import '../remote/absensi_api.dart';
 import '../remote/assignment_api.dart';
 import '../remote/daily_test_api.dart';
+import '../remote/exam_api.dart';
 import '../repositories/absensi_repository.dart';
 import '../repositories/assignment_repository.dart';
 import '../repositories/daily_test_repository.dart';
+import '../repositories/exam_repository.dart';
 
 class SyncResult {
   const SyncResult({
@@ -41,6 +43,10 @@ class SyncService {
     this._dailyTestRepository,
     this._assignmentApi,
     this._assignmentRepository,
+    this._midtermExamApi,
+    this._midtermExamRepository,
+    this._finalExamApi,
+    this._finalExamRepository,
   );
 
   final AppDatabase _db;
@@ -51,6 +57,10 @@ class SyncService {
   final DailyTestRepository _dailyTestRepository;
   final AssignmentApi _assignmentApi;
   final AssignmentRepository _assignmentRepository;
+  final ExamApi _midtermExamApi;
+  final ExamRepository _midtermExamRepository;
+  final ExamApi _finalExamApi;
+  final ExamRepository _finalExamRepository;
 
   static final _dateFormat = DateFormat('yyyy-MM-dd');
   static const _uuid = Uuid();
@@ -90,6 +100,9 @@ class SyncService {
     } catch (_) {}
     try {
       await _db.dedupeAssignmentScores();
+    } catch (_) {}
+    try {
+      await _db.dedupeExamScores();
     } catch (_) {}
 
     var pushed = 0;
@@ -138,6 +151,16 @@ class SyncService {
     } catch (_) {}
     try {
       await _assignmentRepository.refreshAssignments().timeout(
+        const Duration(seconds: 30),
+      );
+    } catch (_) {}
+    try {
+      await _midtermExamRepository.refreshExams().timeout(
+        const Duration(seconds: 30),
+      );
+    } catch (_) {}
+    try {
+      await _finalExamRepository.refreshExams().timeout(
         const Duration(seconds: 30),
       );
     } catch (_) {}
@@ -199,6 +222,30 @@ class SyncService {
         return _updateAssignmentScore(op);
       case 'assignment_score/delete':
         return _deleteRemote(op, (id) => _assignmentApi.deleteScore(id));
+      case 'midterm_exam/create':
+        return _createExam(op, examKindMidterm);
+      case 'midterm_exam/update':
+        return _updateExam(op, examKindMidterm);
+      case 'midterm_exam/delete':
+        return _deleteRemote(op, (id) => _midtermExamApi.deleteExam(id));
+      case 'midterm_score/create':
+        return _createExamScore(op, examKindMidterm);
+      case 'midterm_score/update':
+        return _updateExamScore(op, examKindMidterm);
+      case 'midterm_score/delete':
+        return _deleteRemote(op, (id) => _midtermExamApi.deleteScore(id));
+      case 'final_exam/create':
+        return _createExam(op, examKindFinal);
+      case 'final_exam/update':
+        return _updateExam(op, examKindFinal);
+      case 'final_exam/delete':
+        return _deleteRemote(op, (id) => _finalExamApi.deleteExam(id));
+      case 'final_score/create':
+        return _createExamScore(op, examKindFinal);
+      case 'final_score/update':
+        return _updateExamScore(op, examKindFinal);
+      case 'final_score/delete':
+        return _deleteRemote(op, (id) => _finalExamApi.deleteScore(id));
       default:
         return true;
     }
@@ -528,6 +575,119 @@ class SyncService {
       'score': score.score,
     });
     await _db.markAssignmentScoreSynced(score.localId);
+    return true;
+  }
+
+  ExamApi _examApi(String kind) =>
+      kind == examKindFinal ? _finalExamApi : _midtermExamApi;
+
+  String _examForeignKey(String kind) =>
+      kind == examKindFinal ? 'final_exam_id' : 'midterm_exam_id';
+
+  Future<bool> _createExam(PendingOperation op, String kind) async {
+    final exam = await _db.examByLocalId(op.localId);
+    if (exam == null) {
+      return true;
+    }
+
+    final res = await _examApi(kind).createExam({
+      'client_uuid': exam.clientUuid,
+      'class_id': exam.classId,
+      'title': exam.title,
+      'exam_date': exam.examDate == null
+          ? null
+          : _dateFormat.format(exam.examDate!),
+      'description': exam.description,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID ujian. Data belum tersimpan.',
+      );
+    }
+    await _db.markExamSynced(exam.localId, remoteId: remoteId);
+    await _db.enqueueExamScoreCreatesForExam(exam.localId);
+    return true;
+  }
+
+  Future<bool> _updateExam(PendingOperation op, String kind) async {
+    final exam = await _db.examByLocalId(op.localId);
+    if (exam == null) {
+      return true;
+    }
+    if (exam.remoteId == null) {
+      return false;
+    }
+
+    await _examApi(kind).updateExam(exam.remoteId!, {
+      'class_id': exam.classId,
+      'title': exam.title,
+      'exam_date': exam.examDate == null
+          ? null
+          : _dateFormat.format(exam.examDate!),
+      'description': exam.description,
+    });
+    await _db.markExamSynced(exam.localId);
+    return true;
+  }
+
+  Future<bool> _createExamScore(PendingOperation op, String kind) async {
+    final score = await _db.examScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    final exam = await _db.examByLocalId(score.examLocalId);
+    if (exam?.remoteId == null) {
+      // Exam must be created first; it will be retried afterwards.
+      return false;
+    }
+
+    // Heal rows created before client UUIDs were generated correctly.
+    var clientUuid = score.clientUuid;
+    if (!_uuidPattern.hasMatch(clientUuid)) {
+      clientUuid = _uuid.v4();
+      await _db.setExamScoreClientUuid(score.localId, clientUuid);
+    }
+
+    final res = await _examApi(kind).saveScore({
+      'client_uuid': clientUuid,
+      _examForeignKey(kind): exam!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+
+    final data = _dataOf(res);
+    final remoteId = data['id'];
+    if (remoteId is! int) {
+      throw ApiException(
+        'Server tidak mengembalikan ID nilai ujian. Data belum tersimpan.',
+      );
+    }
+    await _db.markExamScoreSynced(score.localId, remoteId: remoteId);
+    return true;
+  }
+
+  Future<bool> _updateExamScore(PendingOperation op, String kind) async {
+    final score = await _db.examScoreByLocalId(op.localId);
+    if (score == null) {
+      return true;
+    }
+    if (score.remoteId == null) {
+      return false;
+    }
+    final exam = await _db.examByLocalId(score.examLocalId);
+    if (exam?.remoteId == null) {
+      return false;
+    }
+
+    await _examApi(kind).updateScore(score.remoteId!, {
+      _examForeignKey(kind): exam!.remoteId,
+      'student_id': score.studentId,
+      'score': score.score,
+    });
+    await _db.markExamScoreSynced(score.localId);
     return true;
   }
 

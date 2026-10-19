@@ -33,6 +33,7 @@ sinyal buruk.
 | ✅ **Isi Absensi** | Tandai status **HADIR / IZIN / SAKIT / ALFA**, tambahkan catatan, cari siswa, dan simpan sekaligus. |
 | 📝 **Ulangan Harian** | Kelola pertemuan ulangan dan isi nilai siswa per kelas. |
 | 📚 **Tugas** | Kelola pertemuan tugas, isi nilai siswa, dan pindai foto daftar nilai dengan AI. |
+| 📋 **PTS & PAS** | Kelola ujian tengah/akhir semester, filter kelas & tanggal, isi nilai siswa, dan pindai foto daftar nilai dengan AI. |
 | 📈 **Rekap Absensi** | Rekapitulasi kehadiran per kelas dalam satu tampilan. |
 | 🔄 **Sinkronisasi Otomatis** | Data offline dikirim otomatis saat online; ada banner status & notifikasi hasil sinkron. |
 | 🌙 **Tema Gelap / Terang** | Mengikuti preferensi pengguna. |

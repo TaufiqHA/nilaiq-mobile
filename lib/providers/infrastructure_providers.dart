@@ -9,12 +9,14 @@ import '../data/remote/assignment_api.dart';
 import '../data/remote/auth_api.dart';
 import '../data/remote/daily_test_api.dart';
 import '../data/remote/dashboard_api.dart';
+import '../data/remote/exam_api.dart';
 import '../data/remote/score_scan_api.dart';
 import '../data/repositories/absensi_repository.dart';
 import '../data/repositories/assignment_repository.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/daily_test_repository.dart';
 import '../data/repositories/dashboard_repository.dart';
+import '../data/repositories/exam_repository.dart';
 import '../data/sync/sync_service.dart';
 
 final tokenStorageProvider = Provider<TokenStorage>(
@@ -43,6 +45,22 @@ final dailyTestApiProvider = Provider<DailyTestApi>(
 
 final assignmentApiProvider = Provider<AssignmentApi>(
   (ref) => AssignmentApi(ref.watch(apiClientProvider)),
+);
+
+final midtermExamApiProvider = Provider<ExamApi>(
+  (ref) => ExamApi(
+    ref.watch(apiClientProvider),
+    examPath: '/midterm-exams',
+    scorePath: '/midterm-scores',
+  ),
+);
+
+final finalExamApiProvider = Provider<ExamApi>(
+  (ref) => ExamApi(
+    ref.watch(apiClientProvider),
+    examPath: '/final-exams',
+    scorePath: '/final-scores',
+  ),
 );
 
 final scoreScanApiProvider = Provider<ScoreScanApi>(
@@ -85,6 +103,22 @@ final assignmentRepositoryProvider = Provider<AssignmentRepository>(
   ),
 );
 
+final midtermExamRepositoryProvider = Provider<ExamRepository>(
+  (ref) => ExamRepository(
+    ref.watch(databaseProvider),
+    ref.watch(midtermExamApiProvider),
+    examKindMidterm,
+  ),
+);
+
+final finalExamRepositoryProvider = Provider<ExamRepository>(
+  (ref) => ExamRepository(
+    ref.watch(databaseProvider),
+    ref.watch(finalExamApiProvider),
+    examKindFinal,
+  ),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) =>
       AuthRepository(ref.watch(authApiProvider), ref.watch(databaseProvider)),
@@ -107,5 +141,9 @@ final syncServiceProvider = Provider<SyncService>(
     ref.watch(dailyTestRepositoryProvider),
     ref.watch(assignmentApiProvider),
     ref.watch(assignmentRepositoryProvider),
+    ref.watch(midtermExamApiProvider),
+    ref.watch(midtermExamRepositoryProvider),
+    ref.watch(finalExamApiProvider),
+    ref.watch(finalExamRepositoryProvider),
   ),
 );

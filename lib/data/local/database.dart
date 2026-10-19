@@ -9,6 +9,10 @@ import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
+/// Exam kinds shared by the PTS/PAS feature.
+const String examKindMidterm = 'midterm';
+const String examKindFinal = 'final';
+
 /// Cached list of classes (read-only mirror of the server).
 @DataClassName('CachedClass')
 class CachedClasses extends Table {
@@ -116,6 +120,36 @@ class AssignmentScoreRecords extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Exam (PTS/PAS) records. `examKind` is either `midterm` or `final`.
+///
+/// Offline-created rows keep a local id until synced.
+class ExamRecords extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  IntColumn get remoteId => integer().nullable()();
+  TextColumn get clientUuid => text()();
+  TextColumn get examKind => text()();
+  IntColumn get classId => integer().nullable()();
+  TextColumn get className => text().nullable()();
+  TextColumn get title => text()();
+  DateTimeColumn get examDate => dateTime().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// Exam (PTS/PAS) scores per exam/student.
+class ExamScoreRecords extends Table {
+  IntColumn get localId => integer().autoIncrement()();
+  IntColumn get remoteId => integer().nullable()();
+  TextColumn get clientUuid => text()();
+  IntColumn get examLocalId => integer()();
+  IntColumn get studentId => integer()();
+  RealColumn get score => real()();
+  TextColumn get syncStatus =>
+      text().withDefault(const Constant('pending_create'))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 /// Outbox queue of operations waiting to be pushed to the server.
 class PendingOperations extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -157,6 +191,8 @@ class AppMeta extends Table {
     DailyTestScoreRecords,
     AssignmentMeetingRecords,
     AssignmentScoreRecords,
+    ExamRecords,
+    ExamScoreRecords,
     PendingOperations,
     CachedDashboard,
     AppMeta,
@@ -168,7 +204,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -181,6 +217,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await m.createTable(assignmentMeetingRecords);
         await m.createTable(assignmentScoreRecords);
+      }
+      if (from < 4) {
+        await m.createTable(examRecords);
+        await m.createTable(examScoreRecords);
       }
     },
   );
@@ -875,6 +915,236 @@ class AppDatabase extends _$AppDatabase {
     return row?.localId;
   }
 
+  /// Merges server exam (PTS/PAS) rows of [kind], preserving offline rows.
+  Future<void> mergeExamRecords(String kind, List<ServerExam> exams) async {
+    await transaction(() async {
+      final synced =
+          await (select(examRecords)..where(
+                (t) => t.syncStatus.equals('synced') & t.examKind.equals(kind),
+              ))
+              .get();
+      final syncedByRemote = {for (final m in synced) m.remoteId: m};
+      final seenRemote = <int>{};
+
+      for (final exam in exams) {
+        seenRemote.add(exam.id);
+        final existing = syncedByRemote[exam.id];
+        if (existing != null) {
+          await (update(
+            examRecords,
+          )..where((t) => t.localId.equals(existing.localId))).write(
+            ExamRecordsCompanion(
+              classId: Value(exam.classId),
+              className: Value(exam.className),
+              title: Value(exam.title),
+              examDate: Value(exam.examDate),
+              description: Value(exam.description),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
+        } else {
+          await into(examRecords).insert(
+            ExamRecordsCompanion.insert(
+              remoteId: Value(exam.id),
+              clientUuid: 'server-$kind-${exam.id}',
+              examKind: kind,
+              classId: Value(exam.classId),
+              className: Value(exam.className),
+              title: exam.title,
+              examDate: Value(exam.examDate),
+              description: Value(exam.description),
+              syncStatus: const Value('synced'),
+            ),
+          );
+        }
+      }
+
+      for (final exam in synced) {
+        if (exam.remoteId != null && !seenRemote.contains(exam.remoteId)) {
+          await (delete(
+            examScoreRecords,
+          )..where((t) => t.examLocalId.equals(exam.localId))).go();
+          await (delete(
+            examRecords,
+          )..where((t) => t.localId.equals(exam.localId))).go();
+        }
+      }
+    });
+  }
+
+  /// Merges server exam scores of [kind], preserving offline rows.
+  Future<void> mergeExamScores(
+    String kind,
+    List<ServerExamScore> scores,
+  ) async {
+    await transaction(() async {
+      final examRows = await (select(
+        examRecords,
+      )..where((t) => t.examKind.equals(kind))).get();
+      final kindExamIds = {for (final e in examRows) e.localId};
+      if (kindExamIds.isEmpty) {
+        return;
+      }
+      final before = await (select(
+        examScoreRecords,
+      )..where((t) => t.examLocalId.isIn(kindExamIds))).get();
+      final beforeIds = {for (final r in before) r.localId};
+      final byRemote = <int, ExamScoreRecord>{
+        for (final r in before)
+          if (r.remoteId != null) r.remoteId!: r,
+      };
+      final seenRemote = <int>{};
+
+      for (final s in scores) {
+        final examLocalId = await _examLocalIdForRemote(kind, s.examRemoteId);
+        if (examLocalId == null) {
+          continue;
+        }
+        seenRemote.add(s.id);
+
+        final tracked = byRemote[s.id];
+        if (tracked != null) {
+          if (tracked.syncStatus == 'synced') {
+            await _writeServerExamScore(tracked.localId, examLocalId, s);
+          }
+          continue;
+        }
+
+        final samePair =
+            await (select(examScoreRecords)..where(
+                  (t) =>
+                      t.examLocalId.equals(examLocalId) &
+                      t.studentId.equals(s.studentId),
+                ))
+                .get();
+        if (samePair.any((r) => r.syncStatus != 'synced')) {
+          // Keep the pending offline edit; do not create a duplicate row.
+          continue;
+        }
+        if (samePair.isNotEmpty) {
+          final canonical = _canonicalExamScore(samePair);
+          await _writeServerExamScore(canonical.localId, examLocalId, s);
+          continue;
+        }
+
+        await into(examScoreRecords).insert(
+          ExamScoreRecordsCompanion.insert(
+            remoteId: Value(s.id),
+            clientUuid: 'server-$kind-${s.id}',
+            examLocalId: examLocalId,
+            studentId: s.studentId,
+            score: s.score,
+            syncStatus: const Value('synced'),
+          ),
+        );
+      }
+
+      for (final r in before) {
+        if (r.syncStatus == 'synced' &&
+            r.remoteId != null &&
+            !seenRemote.contains(r.remoteId)) {
+          await (delete(
+            examScoreRecords,
+          )..where((t) => t.localId.equals(r.localId))).go();
+        }
+      }
+
+      // Keep the dedupe scope limited to rows still belonging to this kind.
+      if (beforeIds.isNotEmpty) {
+        final remaining = await (select(
+          examScoreRecords,
+        )..where((t) => t.localId.isIn(beforeIds))).get();
+        await _collapseExamScoreDuplicates(remaining);
+      }
+    });
+  }
+
+  Future<void> _writeServerExamScore(
+    int localId,
+    int examLocalId,
+    ServerExamScore s,
+  ) =>
+      (update(examScoreRecords)..where((t) => t.localId.equals(localId))).write(
+        ExamScoreRecordsCompanion(
+          remoteId: Value(s.id),
+          examLocalId: Value(examLocalId),
+          studentId: Value(s.studentId),
+          score: Value(s.score),
+          syncStatus: const Value('synced'),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+  /// Collapses duplicate exam score rows for the same (exam, student).
+  Future<void> _collapseExamScoreDuplicates(List<ExamScoreRecord> rows) async {
+    final groups = <String, List<ExamScoreRecord>>{};
+    for (final r in rows) {
+      groups.putIfAbsent('${r.examLocalId}:${r.studentId}', () => []).add(r);
+    }
+
+    for (final group in groups.values) {
+      if (group.length < 2) {
+        continue;
+      }
+      final canonical = _canonicalExamScore(group);
+      for (final r in group) {
+        if (r.localId == canonical.localId) {
+          continue;
+        }
+        await (delete(pendingOperations)..where(
+              (t) =>
+                  (t.entity.equals('midterm_score') |
+                      t.entity.equals('final_score')) &
+                  t.localId.equals(r.localId),
+            ))
+            .go();
+        await (delete(
+          examScoreRecords,
+        )..where((t) => t.localId.equals(r.localId))).go();
+      }
+    }
+  }
+
+  /// Removes any pre-existing duplicate exam score rows from the cache.
+  Future<void> dedupeExamScores() async {
+    final rows = await select(examScoreRecords).get();
+    await transaction(() => _collapseExamScoreDuplicates(rows));
+  }
+
+  static ExamScoreRecord _canonicalExamScore(List<ExamScoreRecord> rows) {
+    int rank(ExamScoreRecord r) {
+      final hasRemote = r.remoteId != null;
+      final pending = r.syncStatus != 'synced';
+      if (hasRemote && pending) {
+        return 0;
+      }
+      if (hasRemote) {
+        return 1;
+      }
+      if (pending) {
+        return 2;
+      }
+      return 3;
+    }
+
+    return rows.reduce((a, b) {
+      final byRank = rank(a).compareTo(rank(b));
+      if (byRank != 0) {
+        return byRank < 0 ? a : b;
+      }
+      return a.updatedAt.isAfter(b.updatedAt) ? a : b;
+    });
+  }
+
+  Future<int?> _examLocalIdForRemote(String kind, int remoteId) async {
+    final row =
+        await (select(examRecords)..where(
+              (t) => t.examKind.equals(kind) & t.remoteId.equals(remoteId),
+            ))
+            .getSingleOrNull();
+    return row?.localId;
+  }
+
   // ---------------------------------------------------------------------------
   // Reads
   // ---------------------------------------------------------------------------
@@ -958,6 +1228,34 @@ class AppDatabase extends _$AppDatabase {
   ) => (select(
     assignmentScoreRecords,
   )..where((t) => t.meetingLocalId.equals(meetingLocalId))).get();
+
+  Stream<List<ExamRecord>> watchExamRecords(String kind) =>
+      (select(examRecords)
+            ..where((t) => t.examKind.equals(kind))
+            ..orderBy([
+              (t) =>
+                  OrderingTerm(expression: t.examDate, mode: OrderingMode.desc),
+              (t) =>
+                  OrderingTerm(expression: t.localId, mode: OrderingMode.desc),
+            ]))
+          .watch();
+
+  Stream<List<ExamScoreRecord>> watchExamScoresForExam(int examLocalId) =>
+      (select(
+        examScoreRecords,
+      )..where((t) => t.examLocalId.equals(examLocalId))).watch();
+
+  Future<List<ExamScoreRecord>> examScoresForExam(int examLocalId) => (select(
+    examScoreRecords,
+  )..where((t) => t.examLocalId.equals(examLocalId))).get();
+
+  Future<ExamRecord?> examByLocalId(int localId) => (select(
+    examRecords,
+  )..where((t) => t.localId.equals(localId))).getSingleOrNull();
+
+  Future<ExamScoreRecord?> examScoreByLocalId(int localId) => (select(
+    examScoreRecords,
+  )..where((t) => t.localId.equals(localId))).getSingleOrNull();
 
   // ---------------------------------------------------------------------------
   // Writes (offline-first)
@@ -1515,6 +1813,254 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  Future<ExamRecord> createExamLocally({
+    required String clientUuid,
+    required String kind,
+    int? classId,
+    String? className,
+    required String title,
+    DateTime? examDate,
+    String? description,
+  }) async {
+    final localId = await into(examRecords).insert(
+      ExamRecordsCompanion.insert(
+        clientUuid: clientUuid,
+        examKind: kind,
+        classId: Value(classId),
+        className: Value(className),
+        title: title,
+        examDate: Value(examDate),
+        description: Value(description),
+        syncStatus: const Value('pending_create'),
+      ),
+    );
+    await enqueue(
+      entity: _examEntity(kind),
+      localId: localId,
+      operation: 'create',
+    );
+    return (select(
+      examRecords,
+    )..where((t) => t.localId.equals(localId))).getSingle();
+  }
+
+  Future<void> updateExamLocally(
+    ExamRecord exam, {
+    int? classId,
+    String? className,
+    String? title,
+    DateTime? examDate,
+    String? description,
+  }) async {
+    final keepPendingCreate = exam.syncStatus == 'pending_create';
+    await (update(
+      examRecords,
+    )..where((t) => t.localId.equals(exam.localId))).write(
+      ExamRecordsCompanion(
+        classId: Value(classId),
+        className: Value(className),
+        title: Value(title ?? exam.title),
+        examDate: Value(examDate),
+        description: Value(description),
+        syncStatus: Value(
+          keepPendingCreate ? 'pending_create' : 'pending_update',
+        ),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    if (!keepPendingCreate) {
+      await enqueue(
+        entity: _examEntity(exam.examKind),
+        localId: exam.localId,
+        operation: 'update',
+      );
+    }
+  }
+
+  Future<void> deleteExamLocally(ExamRecord exam) async {
+    if (exam.syncStatus == 'pending_create') {
+      await (delete(
+        examScoreRecords,
+      )..where((t) => t.examLocalId.equals(exam.localId))).go();
+      await (delete(pendingOperations)..where(
+            (t) =>
+                t.entity.equals(_examEntity(exam.examKind)) &
+                t.localId.equals(exam.localId),
+          ))
+          .go();
+      await (delete(
+        examRecords,
+      )..where((t) => t.localId.equals(exam.localId))).go();
+      return;
+    }
+
+    await enqueue(
+      entity: _examEntity(exam.examKind),
+      localId: exam.localId,
+      operation: 'delete',
+      payload: {'remote_id': exam.remoteId},
+    );
+    await (delete(
+      examScoreRecords,
+    )..where((t) => t.examLocalId.equals(exam.localId))).go();
+    await (delete(
+      examRecords,
+    )..where((t) => t.localId.equals(exam.localId))).go();
+  }
+
+  Future<void> saveExamScoreLocally({
+    required ExamRecord exam,
+    required int studentId,
+    required double score,
+  }) async {
+    final matches =
+        await (select(examScoreRecords)..where(
+              (t) =>
+                  t.examLocalId.equals(exam.localId) &
+                  t.studentId.equals(studentId),
+            ))
+            .get();
+
+    if (matches.isEmpty) {
+      final localId = await into(examScoreRecords).insert(
+        ExamScoreRecordsCompanion.insert(
+          clientUuid: const Uuid().v4(),
+          examLocalId: exam.localId,
+          studentId: studentId,
+          score: score,
+        ),
+      );
+      if (exam.syncStatus == 'synced') {
+        await enqueue(
+          entity: _examScoreEntity(exam.examKind),
+          localId: localId,
+          operation: 'create',
+        );
+      }
+      return;
+    }
+
+    final existing = _canonicalExamScore(matches);
+    final hasRemote = existing.remoteId != null;
+    await (update(
+      examScoreRecords,
+    )..where((t) => t.localId.equals(existing.localId))).write(
+      ExamScoreRecordsCompanion(
+        score: Value(score),
+        syncStatus: Value(hasRemote ? 'pending_update' : 'pending_create'),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    for (final row in matches) {
+      if (row.localId == existing.localId) {
+        continue;
+      }
+      await (delete(pendingOperations)..where(
+            (t) =>
+                (t.entity.equals('midterm_score') |
+                    t.entity.equals('final_score')) &
+                t.localId.equals(row.localId),
+          ))
+          .go();
+      await (delete(
+        examScoreRecords,
+      )..where((t) => t.localId.equals(row.localId))).go();
+    }
+
+    if (exam.syncStatus == 'synced') {
+      if (hasRemote) {
+        await enqueue(
+          entity: _examScoreEntity(exam.examKind),
+          localId: existing.localId,
+          operation: 'update',
+        );
+      } else {
+        await _ensureExamScoreCreateOp(existing.localId, exam.examKind);
+      }
+    }
+  }
+
+  Future<void> _ensureExamScoreCreateOp(int localId, String kind) async {
+    final pending =
+        await (select(pendingOperations)..where(
+              (t) =>
+                  t.entity.equals(_examScoreEntity(kind)) &
+                  t.localId.equals(localId) &
+                  t.operation.equals('create'),
+            ))
+            .getSingleOrNull();
+    if (pending == null) {
+      await enqueue(
+        entity: _examScoreEntity(kind),
+        localId: localId,
+        operation: 'create',
+      );
+    }
+  }
+
+  Future<void> markExamSynced(int localId, {int? remoteId}) =>
+      (update(examRecords)..where((t) => t.localId.equals(localId))).write(
+        ExamRecordsCompanion(
+          remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+          syncStatus: const Value('synced'),
+        ),
+      );
+
+  Future<void> markExamScoreSynced(int localId, {int? remoteId}) =>
+      (update(examScoreRecords)..where((t) => t.localId.equals(localId))).write(
+        ExamScoreRecordsCompanion(
+          remoteId: remoteId == null ? const Value.absent() : Value(remoteId),
+          syncStatus: const Value('synced'),
+        ),
+      );
+
+  /// Repairs the client UUID of a locally stored exam score row.
+  Future<void> setExamScoreClientUuid(int localId, String clientUuid) =>
+      (update(examScoreRecords)..where((t) => t.localId.equals(localId))).write(
+        ExamScoreRecordsCompanion(clientUuid: Value(clientUuid)),
+      );
+
+  /// Queues create operations for exam scores belonging to a freshly synced
+  /// exam (used for data captured fully offline).
+  Future<void> enqueueExamScoreCreatesForExam(int examLocalId) async {
+    final exam = await examByLocalId(examLocalId);
+    if (exam == null) {
+      return;
+    }
+    final rows = await examScoresForExam(examLocalId);
+    for (final s in rows) {
+      if (s.syncStatus == 'synced') {
+        continue;
+      }
+      final pending =
+          await (select(pendingOperations)..where(
+                (t) =>
+                    t.entity.equals(_examScoreEntity(exam.examKind)) &
+                    t.localId.equals(s.localId),
+              ))
+              .getSingleOrNull();
+      if (pending != null) {
+        continue;
+      }
+      await (update(
+        examScoreRecords,
+      )..where((t) => t.localId.equals(s.localId))).write(
+        const ExamScoreRecordsCompanion(syncStatus: Value('pending_create')),
+      );
+      await enqueue(
+        entity: _examScoreEntity(exam.examKind),
+        localId: s.localId,
+        operation: 'create',
+      );
+    }
+  }
+
+  static String _examEntity(String kind) =>
+      kind == examKindFinal ? 'final_exam' : 'midterm_exam';
+
+  static String _examScoreEntity(String kind) =>
+      kind == examKindFinal ? 'final_score' : 'midterm_score';
+
   // ---------------------------------------------------------------------------
   // Outbox
   // ---------------------------------------------------------------------------
@@ -1864,6 +2410,8 @@ class AppDatabase extends _$AppDatabase {
       await delete(dailyTestScoreRecords).go();
       await delete(assignmentMeetingRecords).go();
       await delete(assignmentScoreRecords).go();
+      await delete(examRecords).go();
+      await delete(examScoreRecords).go();
       await delete(pendingOperations).go();
       await delete(cachedDashboard).go();
       await delete(cachedClasses).go();
@@ -1995,6 +2543,38 @@ class ServerAssignmentScore {
 
   final int id;
   final int meetingRemoteId;
+  final int studentId;
+  final double score;
+}
+
+class ServerExam {
+  ServerExam({
+    required this.id,
+    this.classId,
+    this.className,
+    required this.title,
+    this.examDate,
+    this.description,
+  });
+
+  final int id;
+  final int? classId;
+  final String? className;
+  final String title;
+  final DateTime? examDate;
+  final String? description;
+}
+
+class ServerExamScore {
+  ServerExamScore({
+    required this.id,
+    required this.examRemoteId,
+    required this.studentId,
+    required this.score,
+  });
+
+  final int id;
+  final int examRemoteId;
   final int studentId;
   final double score;
 }

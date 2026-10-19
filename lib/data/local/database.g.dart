@@ -4007,6 +4007,1176 @@ class AssignmentScoreRecordsCompanion
   }
 }
 
+class $ExamRecordsTable extends ExamRecords
+    with TableInfo<$ExamRecordsTable, ExamRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExamRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clientUuidMeta = const VerificationMeta(
+    'clientUuid',
+  );
+  @override
+  late final GeneratedColumn<String> clientUuid = GeneratedColumn<String>(
+    'client_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _examKindMeta = const VerificationMeta(
+    'examKind',
+  );
+  @override
+  late final GeneratedColumn<String> examKind = GeneratedColumn<String>(
+    'exam_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _classIdMeta = const VerificationMeta(
+    'classId',
+  );
+  @override
+  late final GeneratedColumn<int> classId = GeneratedColumn<int>(
+    'class_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _classNameMeta = const VerificationMeta(
+    'className',
+  );
+  @override
+  late final GeneratedColumn<String> className = GeneratedColumn<String>(
+    'class_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _examDateMeta = const VerificationMeta(
+    'examDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> examDate = GeneratedColumn<DateTime>(
+    'exam_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    remoteId,
+    clientUuid,
+    examKind,
+    classId,
+    className,
+    title,
+    examDate,
+    description,
+    syncStatus,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exam_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExamRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    }
+    if (data.containsKey('client_uuid')) {
+      context.handle(
+        _clientUuidMeta,
+        clientUuid.isAcceptableOrUnknown(data['client_uuid']!, _clientUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUuidMeta);
+    }
+    if (data.containsKey('exam_kind')) {
+      context.handle(
+        _examKindMeta,
+        examKind.isAcceptableOrUnknown(data['exam_kind']!, _examKindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_examKindMeta);
+    }
+    if (data.containsKey('class_id')) {
+      context.handle(
+        _classIdMeta,
+        classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
+      );
+    }
+    if (data.containsKey('class_name')) {
+      context.handle(
+        _classNameMeta,
+        className.isAcceptableOrUnknown(data['class_name']!, _classNameMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('exam_date')) {
+      context.handle(
+        _examDateMeta,
+        examDate.isAcceptableOrUnknown(data['exam_date']!, _examDateMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  ExamRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExamRecord(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remote_id'],
+      ),
+      clientUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_uuid'],
+      )!,
+      examKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exam_kind'],
+      )!,
+      classId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}class_id'],
+      ),
+      className: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}class_name'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      examDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}exam_date'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExamRecordsTable createAlias(String alias) {
+    return $ExamRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ExamRecord extends DataClass implements Insertable<ExamRecord> {
+  final int localId;
+  final int? remoteId;
+  final String clientUuid;
+  final String examKind;
+  final int? classId;
+  final String? className;
+  final String title;
+  final DateTime? examDate;
+  final String? description;
+  final String syncStatus;
+  final DateTime updatedAt;
+  const ExamRecord({
+    required this.localId,
+    this.remoteId,
+    required this.clientUuid,
+    required this.examKind,
+    this.classId,
+    this.className,
+    required this.title,
+    this.examDate,
+    this.description,
+    required this.syncStatus,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<int>(remoteId);
+    }
+    map['client_uuid'] = Variable<String>(clientUuid);
+    map['exam_kind'] = Variable<String>(examKind);
+    if (!nullToAbsent || classId != null) {
+      map['class_id'] = Variable<int>(classId);
+    }
+    if (!nullToAbsent || className != null) {
+      map['class_name'] = Variable<String>(className);
+    }
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || examDate != null) {
+      map['exam_date'] = Variable<DateTime>(examDate);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ExamRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ExamRecordsCompanion(
+      localId: Value(localId),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      clientUuid: Value(clientUuid),
+      examKind: Value(examKind),
+      classId: classId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(classId),
+      className: className == null && nullToAbsent
+          ? const Value.absent()
+          : Value(className),
+      title: Value(title),
+      examDate: examDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(examDate),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExamRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExamRecord(
+      localId: serializer.fromJson<int>(json['localId']),
+      remoteId: serializer.fromJson<int?>(json['remoteId']),
+      clientUuid: serializer.fromJson<String>(json['clientUuid']),
+      examKind: serializer.fromJson<String>(json['examKind']),
+      classId: serializer.fromJson<int?>(json['classId']),
+      className: serializer.fromJson<String?>(json['className']),
+      title: serializer.fromJson<String>(json['title']),
+      examDate: serializer.fromJson<DateTime?>(json['examDate']),
+      description: serializer.fromJson<String?>(json['description']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'remoteId': serializer.toJson<int?>(remoteId),
+      'clientUuid': serializer.toJson<String>(clientUuid),
+      'examKind': serializer.toJson<String>(examKind),
+      'classId': serializer.toJson<int?>(classId),
+      'className': serializer.toJson<String?>(className),
+      'title': serializer.toJson<String>(title),
+      'examDate': serializer.toJson<DateTime?>(examDate),
+      'description': serializer.toJson<String?>(description),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ExamRecord copyWith({
+    int? localId,
+    Value<int?> remoteId = const Value.absent(),
+    String? clientUuid,
+    String? examKind,
+    Value<int?> classId = const Value.absent(),
+    Value<String?> className = const Value.absent(),
+    String? title,
+    Value<DateTime?> examDate = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+    String? syncStatus,
+    DateTime? updatedAt,
+  }) => ExamRecord(
+    localId: localId ?? this.localId,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
+    clientUuid: clientUuid ?? this.clientUuid,
+    examKind: examKind ?? this.examKind,
+    classId: classId.present ? classId.value : this.classId,
+    className: className.present ? className.value : this.className,
+    title: title ?? this.title,
+    examDate: examDate.present ? examDate.value : this.examDate,
+    description: description.present ? description.value : this.description,
+    syncStatus: syncStatus ?? this.syncStatus,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExamRecord copyWithCompanion(ExamRecordsCompanion data) {
+    return ExamRecord(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      clientUuid: data.clientUuid.present
+          ? data.clientUuid.value
+          : this.clientUuid,
+      examKind: data.examKind.present ? data.examKind.value : this.examKind,
+      classId: data.classId.present ? data.classId.value : this.classId,
+      className: data.className.present ? data.className.value : this.className,
+      title: data.title.present ? data.title.value : this.title,
+      examDate: data.examDate.present ? data.examDate.value : this.examDate,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExamRecord(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('examKind: $examKind, ')
+          ..write('classId: $classId, ')
+          ..write('className: $className, ')
+          ..write('title: $title, ')
+          ..write('examDate: $examDate, ')
+          ..write('description: $description, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    remoteId,
+    clientUuid,
+    examKind,
+    classId,
+    className,
+    title,
+    examDate,
+    description,
+    syncStatus,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExamRecord &&
+          other.localId == this.localId &&
+          other.remoteId == this.remoteId &&
+          other.clientUuid == this.clientUuid &&
+          other.examKind == this.examKind &&
+          other.classId == this.classId &&
+          other.className == this.className &&
+          other.title == this.title &&
+          other.examDate == this.examDate &&
+          other.description == this.description &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExamRecordsCompanion extends UpdateCompanion<ExamRecord> {
+  final Value<int> localId;
+  final Value<int?> remoteId;
+  final Value<String> clientUuid;
+  final Value<String> examKind;
+  final Value<int?> classId;
+  final Value<String?> className;
+  final Value<String> title;
+  final Value<DateTime?> examDate;
+  final Value<String?> description;
+  final Value<String> syncStatus;
+  final Value<DateTime> updatedAt;
+  const ExamRecordsCompanion({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.examKind = const Value.absent(),
+    this.classId = const Value.absent(),
+    this.className = const Value.absent(),
+    this.title = const Value.absent(),
+    this.examDate = const Value.absent(),
+    this.description = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ExamRecordsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    required String clientUuid,
+    required String examKind,
+    this.classId = const Value.absent(),
+    this.className = const Value.absent(),
+    required String title,
+    this.examDate = const Value.absent(),
+    this.description = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : clientUuid = Value(clientUuid),
+       examKind = Value(examKind),
+       title = Value(title);
+  static Insertable<ExamRecord> custom({
+    Expression<int>? localId,
+    Expression<int>? remoteId,
+    Expression<String>? clientUuid,
+    Expression<String>? examKind,
+    Expression<int>? classId,
+    Expression<String>? className,
+    Expression<String>? title,
+    Expression<DateTime>? examDate,
+    Expression<String>? description,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (clientUuid != null) 'client_uuid': clientUuid,
+      if (examKind != null) 'exam_kind': examKind,
+      if (classId != null) 'class_id': classId,
+      if (className != null) 'class_name': className,
+      if (title != null) 'title': title,
+      if (examDate != null) 'exam_date': examDate,
+      if (description != null) 'description': description,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ExamRecordsCompanion copyWith({
+    Value<int>? localId,
+    Value<int?>? remoteId,
+    Value<String>? clientUuid,
+    Value<String>? examKind,
+    Value<int?>? classId,
+    Value<String?>? className,
+    Value<String>? title,
+    Value<DateTime?>? examDate,
+    Value<String?>? description,
+    Value<String>? syncStatus,
+    Value<DateTime>? updatedAt,
+  }) {
+    return ExamRecordsCompanion(
+      localId: localId ?? this.localId,
+      remoteId: remoteId ?? this.remoteId,
+      clientUuid: clientUuid ?? this.clientUuid,
+      examKind: examKind ?? this.examKind,
+      classId: classId ?? this.classId,
+      className: className ?? this.className,
+      title: title ?? this.title,
+      examDate: examDate ?? this.examDate,
+      description: description ?? this.description,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    if (clientUuid.present) {
+      map['client_uuid'] = Variable<String>(clientUuid.value);
+    }
+    if (examKind.present) {
+      map['exam_kind'] = Variable<String>(examKind.value);
+    }
+    if (classId.present) {
+      map['class_id'] = Variable<int>(classId.value);
+    }
+    if (className.present) {
+      map['class_name'] = Variable<String>(className.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (examDate.present) {
+      map['exam_date'] = Variable<DateTime>(examDate.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExamRecordsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('examKind: $examKind, ')
+          ..write('classId: $classId, ')
+          ..write('className: $className, ')
+          ..write('title: $title, ')
+          ..write('examDate: $examDate, ')
+          ..write('description: $description, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExamScoreRecordsTable extends ExamScoreRecords
+    with TableInfo<$ExamScoreRecordsTable, ExamScoreRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExamScoreRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clientUuidMeta = const VerificationMeta(
+    'clientUuid',
+  );
+  @override
+  late final GeneratedColumn<String> clientUuid = GeneratedColumn<String>(
+    'client_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _examLocalIdMeta = const VerificationMeta(
+    'examLocalId',
+  );
+  @override
+  late final GeneratedColumn<int> examLocalId = GeneratedColumn<int>(
+    'exam_local_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<int> studentId = GeneratedColumn<int>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<double> score = GeneratedColumn<double>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending_create'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    remoteId,
+    clientUuid,
+    examLocalId,
+    studentId,
+    score,
+    syncStatus,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exam_score_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExamScoreRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    }
+    if (data.containsKey('client_uuid')) {
+      context.handle(
+        _clientUuidMeta,
+        clientUuid.isAcceptableOrUnknown(data['client_uuid']!, _clientUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUuidMeta);
+    }
+    if (data.containsKey('exam_local_id')) {
+      context.handle(
+        _examLocalIdMeta,
+        examLocalId.isAcceptableOrUnknown(
+          data['exam_local_id']!,
+          _examLocalIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_examLocalIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scoreMeta);
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  ExamScoreRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExamScoreRecord(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remote_id'],
+      ),
+      clientUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_uuid'],
+      )!,
+      examLocalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exam_local_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}student_id'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}score'],
+      )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExamScoreRecordsTable createAlias(String alias) {
+    return $ExamScoreRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ExamScoreRecord extends DataClass implements Insertable<ExamScoreRecord> {
+  final int localId;
+  final int? remoteId;
+  final String clientUuid;
+  final int examLocalId;
+  final int studentId;
+  final double score;
+  final String syncStatus;
+  final DateTime updatedAt;
+  const ExamScoreRecord({
+    required this.localId,
+    this.remoteId,
+    required this.clientUuid,
+    required this.examLocalId,
+    required this.studentId,
+    required this.score,
+    required this.syncStatus,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<int>(remoteId);
+    }
+    map['client_uuid'] = Variable<String>(clientUuid);
+    map['exam_local_id'] = Variable<int>(examLocalId);
+    map['student_id'] = Variable<int>(studentId);
+    map['score'] = Variable<double>(score);
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ExamScoreRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ExamScoreRecordsCompanion(
+      localId: Value(localId),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      clientUuid: Value(clientUuid),
+      examLocalId: Value(examLocalId),
+      studentId: Value(studentId),
+      score: Value(score),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExamScoreRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExamScoreRecord(
+      localId: serializer.fromJson<int>(json['localId']),
+      remoteId: serializer.fromJson<int?>(json['remoteId']),
+      clientUuid: serializer.fromJson<String>(json['clientUuid']),
+      examLocalId: serializer.fromJson<int>(json['examLocalId']),
+      studentId: serializer.fromJson<int>(json['studentId']),
+      score: serializer.fromJson<double>(json['score']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'remoteId': serializer.toJson<int?>(remoteId),
+      'clientUuid': serializer.toJson<String>(clientUuid),
+      'examLocalId': serializer.toJson<int>(examLocalId),
+      'studentId': serializer.toJson<int>(studentId),
+      'score': serializer.toJson<double>(score),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ExamScoreRecord copyWith({
+    int? localId,
+    Value<int?> remoteId = const Value.absent(),
+    String? clientUuid,
+    int? examLocalId,
+    int? studentId,
+    double? score,
+    String? syncStatus,
+    DateTime? updatedAt,
+  }) => ExamScoreRecord(
+    localId: localId ?? this.localId,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
+    clientUuid: clientUuid ?? this.clientUuid,
+    examLocalId: examLocalId ?? this.examLocalId,
+    studentId: studentId ?? this.studentId,
+    score: score ?? this.score,
+    syncStatus: syncStatus ?? this.syncStatus,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExamScoreRecord copyWithCompanion(ExamScoreRecordsCompanion data) {
+    return ExamScoreRecord(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      clientUuid: data.clientUuid.present
+          ? data.clientUuid.value
+          : this.clientUuid,
+      examLocalId: data.examLocalId.present
+          ? data.examLocalId.value
+          : this.examLocalId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      score: data.score.present ? data.score.value : this.score,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExamScoreRecord(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('examLocalId: $examLocalId, ')
+          ..write('studentId: $studentId, ')
+          ..write('score: $score, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    remoteId,
+    clientUuid,
+    examLocalId,
+    studentId,
+    score,
+    syncStatus,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExamScoreRecord &&
+          other.localId == this.localId &&
+          other.remoteId == this.remoteId &&
+          other.clientUuid == this.clientUuid &&
+          other.examLocalId == this.examLocalId &&
+          other.studentId == this.studentId &&
+          other.score == this.score &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExamScoreRecordsCompanion extends UpdateCompanion<ExamScoreRecord> {
+  final Value<int> localId;
+  final Value<int?> remoteId;
+  final Value<String> clientUuid;
+  final Value<int> examLocalId;
+  final Value<int> studentId;
+  final Value<double> score;
+  final Value<String> syncStatus;
+  final Value<DateTime> updatedAt;
+  const ExamScoreRecordsCompanion({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.examLocalId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.score = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ExamScoreRecordsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    required String clientUuid,
+    required int examLocalId,
+    required int studentId,
+    required double score,
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : clientUuid = Value(clientUuid),
+       examLocalId = Value(examLocalId),
+       studentId = Value(studentId),
+       score = Value(score);
+  static Insertable<ExamScoreRecord> custom({
+    Expression<int>? localId,
+    Expression<int>? remoteId,
+    Expression<String>? clientUuid,
+    Expression<int>? examLocalId,
+    Expression<int>? studentId,
+    Expression<double>? score,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (clientUuid != null) 'client_uuid': clientUuid,
+      if (examLocalId != null) 'exam_local_id': examLocalId,
+      if (studentId != null) 'student_id': studentId,
+      if (score != null) 'score': score,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ExamScoreRecordsCompanion copyWith({
+    Value<int>? localId,
+    Value<int?>? remoteId,
+    Value<String>? clientUuid,
+    Value<int>? examLocalId,
+    Value<int>? studentId,
+    Value<double>? score,
+    Value<String>? syncStatus,
+    Value<DateTime>? updatedAt,
+  }) {
+    return ExamScoreRecordsCompanion(
+      localId: localId ?? this.localId,
+      remoteId: remoteId ?? this.remoteId,
+      clientUuid: clientUuid ?? this.clientUuid,
+      examLocalId: examLocalId ?? this.examLocalId,
+      studentId: studentId ?? this.studentId,
+      score: score ?? this.score,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    if (clientUuid.present) {
+      map['client_uuid'] = Variable<String>(clientUuid.value);
+    }
+    if (examLocalId.present) {
+      map['exam_local_id'] = Variable<int>(examLocalId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<int>(studentId.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<double>(score.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExamScoreRecordsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('examLocalId: $examLocalId, ')
+          ..write('studentId: $studentId, ')
+          ..write('score: $score, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PendingOperationsTable extends PendingOperations
     with TableInfo<$PendingOperationsTable, PendingOperation> {
   @override
@@ -4978,6 +6148,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AssignmentMeetingRecordsTable(this);
   late final $AssignmentScoreRecordsTable assignmentScoreRecords =
       $AssignmentScoreRecordsTable(this);
+  late final $ExamRecordsTable examRecords = $ExamRecordsTable(this);
+  late final $ExamScoreRecordsTable examScoreRecords = $ExamScoreRecordsTable(
+    this,
+  );
   late final $PendingOperationsTable pendingOperations =
       $PendingOperationsTable(this);
   late final $CachedDashboardTable cachedDashboard = $CachedDashboardTable(
@@ -4997,6 +6171,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyTestScoreRecords,
     assignmentMeetingRecords,
     assignmentScoreRecords,
+    examRecords,
+    examScoreRecords,
     pendingOperations,
     cachedDashboard,
     appMeta,
@@ -7195,6 +8371,601 @@ typedef $$AssignmentScoreRecordsTableProcessedTableManager =
       AssignmentScoreRecord,
       PrefetchHooks Function()
     >;
+typedef $$ExamRecordsTableCreateCompanionBuilder =
+    ExamRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      required String clientUuid,
+      required String examKind,
+      Value<int?> classId,
+      Value<String?> className,
+      required String title,
+      Value<DateTime?> examDate,
+      Value<String?> description,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+typedef $$ExamRecordsTableUpdateCompanionBuilder =
+    ExamRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      Value<String> clientUuid,
+      Value<String> examKind,
+      Value<int?> classId,
+      Value<String?> className,
+      Value<String> title,
+      Value<DateTime?> examDate,
+      Value<String?> description,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+
+class $$ExamRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExamRecordsTable> {
+  $$ExamRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get examKind => $composableBuilder(
+    column: $table.examKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get className => $composableBuilder(
+    column: $table.className,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get examDate => $composableBuilder(
+    column: $table.examDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExamRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExamRecordsTable> {
+  $$ExamRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get examKind => $composableBuilder(
+    column: $table.examKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get className => $composableBuilder(
+    column: $table.className,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get examDate => $composableBuilder(
+    column: $table.examDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExamRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExamRecordsTable> {
+  $$ExamRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get examKind =>
+      $composableBuilder(column: $table.examKind, builder: (column) => column);
+
+  GeneratedColumn<int> get classId =>
+      $composableBuilder(column: $table.classId, builder: (column) => column);
+
+  GeneratedColumn<String> get className =>
+      $composableBuilder(column: $table.className, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get examDate =>
+      $composableBuilder(column: $table.examDate, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExamRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExamRecordsTable,
+          ExamRecord,
+          $$ExamRecordsTableFilterComposer,
+          $$ExamRecordsTableOrderingComposer,
+          $$ExamRecordsTableAnnotationComposer,
+          $$ExamRecordsTableCreateCompanionBuilder,
+          $$ExamRecordsTableUpdateCompanionBuilder,
+          (
+            ExamRecord,
+            BaseReferences<_$AppDatabase, $ExamRecordsTable, ExamRecord>,
+          ),
+          ExamRecord,
+          PrefetchHooks Function()
+        > {
+  $$ExamRecordsTableTableManager(_$AppDatabase db, $ExamRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExamRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExamRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExamRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<String> examKind = const Value.absent(),
+                Value<int?> classId = const Value.absent(),
+                Value<String?> className = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<DateTime?> examDate = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExamRecordsCompanion(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                examKind: examKind,
+                classId: classId,
+                className: className,
+                title: title,
+                examDate: examDate,
+                description: description,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                required String clientUuid,
+                required String examKind,
+                Value<int?> classId = const Value.absent(),
+                Value<String?> className = const Value.absent(),
+                required String title,
+                Value<DateTime?> examDate = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExamRecordsCompanion.insert(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                examKind: examKind,
+                classId: classId,
+                className: className,
+                title: title,
+                examDate: examDate,
+                description: description,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ExamRecordsTable, ExamRecord>(table),
+                  BaseReferences<_$AppDatabase, $ExamRecordsTable, ExamRecord>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExamRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExamRecordsTable,
+      ExamRecord,
+      $$ExamRecordsTableFilterComposer,
+      $$ExamRecordsTableOrderingComposer,
+      $$ExamRecordsTableAnnotationComposer,
+      $$ExamRecordsTableCreateCompanionBuilder,
+      $$ExamRecordsTableUpdateCompanionBuilder,
+      (
+        ExamRecord,
+        BaseReferences<_$AppDatabase, $ExamRecordsTable, ExamRecord>,
+      ),
+      ExamRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$ExamScoreRecordsTableCreateCompanionBuilder =
+    ExamScoreRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      required String clientUuid,
+      required int examLocalId,
+      required int studentId,
+      required double score,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+typedef $$ExamScoreRecordsTableUpdateCompanionBuilder =
+    ExamScoreRecordsCompanion Function({
+      Value<int> localId,
+      Value<int?> remoteId,
+      Value<String> clientUuid,
+      Value<int> examLocalId,
+      Value<int> studentId,
+      Value<double> score,
+      Value<String> syncStatus,
+      Value<DateTime> updatedAt,
+    });
+
+class $$ExamScoreRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExamScoreRecordsTable> {
+  $$ExamScoreRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get examLocalId => $composableBuilder(
+    column: $table.examLocalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExamScoreRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExamScoreRecordsTable> {
+  $$ExamScoreRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get examLocalId => $composableBuilder(
+    column: $table.examLocalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExamScoreRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExamScoreRecordsTable> {
+  $$ExamScoreRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get examLocalId => $composableBuilder(
+    column: $table.examLocalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get studentId =>
+      $composableBuilder(column: $table.studentId, builder: (column) => column);
+
+  GeneratedColumn<double> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExamScoreRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExamScoreRecordsTable,
+          ExamScoreRecord,
+          $$ExamScoreRecordsTableFilterComposer,
+          $$ExamScoreRecordsTableOrderingComposer,
+          $$ExamScoreRecordsTableAnnotationComposer,
+          $$ExamScoreRecordsTableCreateCompanionBuilder,
+          $$ExamScoreRecordsTableUpdateCompanionBuilder,
+          (
+            ExamScoreRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $ExamScoreRecordsTable,
+              ExamScoreRecord
+            >,
+          ),
+          ExamScoreRecord,
+          PrefetchHooks Function()
+        > {
+  $$ExamScoreRecordsTableTableManager(
+    _$AppDatabase db,
+    $ExamScoreRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExamScoreRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExamScoreRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExamScoreRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<int> examLocalId = const Value.absent(),
+                Value<int> studentId = const Value.absent(),
+                Value<double> score = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExamScoreRecordsCompanion(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                examLocalId: examLocalId,
+                studentId: studentId,
+                score: score,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<int?> remoteId = const Value.absent(),
+                required String clientUuid,
+                required int examLocalId,
+                required int studentId,
+                required double score,
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExamScoreRecordsCompanion.insert(
+                localId: localId,
+                remoteId: remoteId,
+                clientUuid: clientUuid,
+                examLocalId: examLocalId,
+                studentId: studentId,
+                score: score,
+                syncStatus: syncStatus,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ExamScoreRecordsTable, ExamScoreRecord>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ExamScoreRecordsTable,
+                    ExamScoreRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExamScoreRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExamScoreRecordsTable,
+      ExamScoreRecord,
+      $$ExamScoreRecordsTableFilterComposer,
+      $$ExamScoreRecordsTableOrderingComposer,
+      $$ExamScoreRecordsTableAnnotationComposer,
+      $$ExamScoreRecordsTableCreateCompanionBuilder,
+      $$ExamScoreRecordsTableUpdateCompanionBuilder,
+      (
+        ExamScoreRecord,
+        BaseReferences<_$AppDatabase, $ExamScoreRecordsTable, ExamScoreRecord>,
+      ),
+      ExamScoreRecord,
+      PrefetchHooks Function()
+    >;
 typedef $$PendingOperationsTableCreateCompanionBuilder =
     PendingOperationsCompanion Function({
       Value<int> id,
@@ -7811,6 +9582,10 @@ class $AppDatabaseManager {
         _db,
         _db.assignmentScoreRecords,
       );
+  $$ExamRecordsTableTableManager get examRecords =>
+      $$ExamRecordsTableTableManager(_db, _db.examRecords);
+  $$ExamScoreRecordsTableTableManager get examScoreRecords =>
+      $$ExamScoreRecordsTableTableManager(_db, _db.examScoreRecords);
   $$PendingOperationsTableTableManager get pendingOperations =>
       $$PendingOperationsTableTableManager(_db, _db.pendingOperations);
   $$CachedDashboardTableTableManager get cachedDashboard =>

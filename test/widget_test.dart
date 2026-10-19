@@ -498,4 +498,126 @@ void main() {
       expect(await db.pendingCount(), 1);
     },
   );
+
+  test('creating a PTS exam offline enqueues a pending create', () async {
+    final exam = await db.createExamLocally(
+      clientUuid: 'exam-1',
+      kind: examKindMidterm,
+      classId: 1,
+      className: 'Kelas X',
+      title: 'PTS Ganjil Matematika',
+      examDate: DateTime(2026, 9, 15),
+    );
+
+    expect(exam.syncStatus, 'pending_create');
+    expect(exam.examKind, examKindMidterm);
+    expect(await db.pendingCount(), 1);
+  });
+
+  test('saving a PTS score for a pending exam keeps one row', () async {
+    final exam = await db.createExamLocally(
+      clientUuid: 'exam-2',
+      kind: examKindMidterm,
+      classId: 1,
+      className: 'Kelas X',
+      title: 'PTS Ganjil',
+    );
+
+    await db.saveExamScoreLocally(exam: exam, studentId: 10, score: 70);
+    await db.saveExamScoreLocally(exam: exam, studentId: 10, score: 95);
+
+    final rows = await db.examScoresForExam(exam.localId);
+    expect(rows, hasLength(1));
+    expect(rows.single.score, 95);
+    // Only the exam create is queued (scores wait for the exam).
+    expect(await db.pendingCount(), 1);
+  });
+
+  test('deleting an unsynced PAS exam clears its rows and queue', () async {
+    final exam = await db.createExamLocally(
+      clientUuid: 'exam-3',
+      kind: examKindFinal,
+      classId: 1,
+      className: 'Kelas X',
+      title: 'PAS Ganjil',
+    );
+    await db.saveExamScoreLocally(exam: exam, studentId: 1, score: 80);
+
+    await db.deleteExamLocally(exam);
+
+    expect(await db.select(db.examRecords).get(), isEmpty);
+    expect(await db.examScoresForExam(exam.localId), isEmpty);
+    expect(await db.pendingCount(), 0);
+  });
+
+  test('merging PTS and PAS preserves each kind and offline rows', () async {
+    await db.createExamLocally(
+      clientUuid: 'exam-4',
+      kind: examKindMidterm,
+      classId: 1,
+      className: 'Kelas X',
+      title: 'Offline PTS',
+    );
+
+    // Both server resources start their ids at 1; they must not collide.
+    await db.mergeExamRecords(examKindMidterm, [
+      ServerExam(
+        id: 1,
+        classId: 2,
+        className: 'Kelas XI',
+        title: 'Server PTS',
+        examDate: DateTime(2026, 9, 15),
+      ),
+    ]);
+    await db.mergeExamRecords(examKindFinal, [
+      ServerExam(
+        id: 1,
+        classId: 2,
+        className: 'Kelas XI',
+        title: 'Server PAS',
+        examDate: DateTime(2026, 12, 1),
+      ),
+    ]);
+
+    final midterms = await db.watchExamRecords(examKindMidterm).first;
+    final finals = await db.watchExamRecords(examKindFinal).first;
+
+    expect(midterms, hasLength(2));
+    expect(midterms.any((e) => e.title == 'Offline PTS'), isTrue);
+    expect(midterms.any((e) => e.title == 'Server PTS'), isTrue);
+    expect(finals, hasLength(1));
+    expect(finals.single.title, 'Server PAS');
+  });
+
+  test('merging duplicate PTS scores keeps a single row', () async {
+    await db.mergeExamRecords(examKindMidterm, [
+      ServerExam(id: 50, title: 'PTS Server'),
+    ]);
+    final exam = (await db.watchExamRecords(examKindMidterm).first).single;
+
+    await db.mergeExamScores(examKindMidterm, [
+      ServerExamScore(id: 201, examRemoteId: 50, studentId: 9, score: 80),
+      ServerExamScore(id: 202, examRemoteId: 50, studentId: 9, score: 90),
+    ]);
+
+    final rows = await db.examScoresForExam(exam.localId);
+    expect(rows, hasLength(1));
+  });
+
+  test('saving a PTS score for a synced exam queues one create op', () async {
+    await db.mergeExamRecords(examKindMidterm, [
+      ServerExam(id: 60, title: 'PTS Tersinkron'),
+    ]);
+    final exam = (await db.watchExamRecords(examKindMidterm).first).single;
+
+    await db.saveExamScoreLocally(exam: exam, studentId: 3, score: 65);
+    expect(await db.pendingCount(), 1);
+
+    await db.saveExamScoreLocally(exam: exam, studentId: 3, score: 75);
+
+    final rows = await db.examScoresForExam(exam.localId);
+    expect(rows, hasLength(1));
+    expect(rows.single.score, 75);
+    expect(await db.pendingCount(), 1);
+  });
 }
